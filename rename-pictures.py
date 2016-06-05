@@ -114,7 +114,7 @@ def rename_picture (src, opts):
         print "can't find file's date, skipping..."
 
 parser= argparse.ArgumentParser ()
-parser.add_argument ('-s', '--source', required=True)
+parser.add_argument ('-s', '--source', default='incoming/01-tmp')
 parser.add_argument ('-n', '--dry-run', action='store_true', default=False)
 opts= parser.parse_args (sys.argv[1:])
 
