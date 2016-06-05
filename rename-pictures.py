@@ -13,11 +13,6 @@ import stat
 import argparse
 import pdb
 
-# variant (!!!; see https://xkcd.com/927/) of ISO 8601 compatible with Windows
-# .%f ignored because it's always 0
-# 2016/04/2016-04-30T12.59.40.jpg
-file_name_format= "%Y/%m/%Y-%m-%dT%H.%M.%S"
-
 def read_image_date (file_name):
     metadata = pyexiv2.ImageMetadata (file_name)
     try:
@@ -61,10 +56,20 @@ def rename_picture (src, opts):
         date= None
 
     if date is not None:
-        ext= os.path.splitext (src)[1].lower ()
+        # we do twothings here
+        src_dir, src_name= os.path.split (src)
+        ext= os.path.splitext (src_name)[1].lower ()
 
-        dst= date.strftime (file_name_format)+ext
+        # first, we rename the file from DSC_XXXX.JPG to a date based name
+        # variant (!!!; see https://xkcd.com/927/) of ISO 8601 compatible with Windows
+        # .%f ignored because it's always 0
+        # 2016/04/2016-04-30T12.59.40.jpg
+        file_name_format= "%Y-%m-%dT%H.%M.%S"
+        dst= os.path.join (src_dir, date.strftime (file_name_format)+ext)
         dst_dir, dst_name= os.path.split (dst)
+
+        # then we also link it in the by_date dir
+        dst_by_date= date.strftime ("%Y/%m/"+file_name_format)+ext
 
         try:
             os.makedirs (dst_dir)
@@ -76,11 +81,11 @@ def rename_picture (src, opts):
             print "skipping %s: already in good format" % src
             return
 
-        moved= False
+        renamed= False
         count= 1
         ss= os.stat (src)
 
-        while not moved:
+        while not renamed:
             try:
                 ds= os.stat (dst)
             except OSError, e:
@@ -89,24 +94,20 @@ def rename_picture (src, opts):
                     return
 
                 # dst is free to take
-                moved= True
+                renamed= True
             else:
-                # foo= raw_input ('conflict found: %s -> %s; break for inspection [y/N]?' % (src, dst))
-                # if foo!='':
-                #     pdb.set_trace ()
-
-                if ds.st_size==ss.st_size:
-                    print "skipping %s: already in place -> %s" % (src, dst)
-                    return
-
                 print "[W:%s]: %s exists" % (src, dst)
                 dst= os.path.join (dst_dir, "%s_%02d%s" % (dst_name, count, ext))
                 count+= 1
 
-        print "%s -> %s" % (src, dst)
         try:
+            print "%s -> %s" % (src, dst)
             if not opts.dry_run:
-                os.link (src, dst)
+                os.rename (src, dst)
+
+            print "%s => %s" % (dst, dst_by_date)
+            if not opts.dry_run:
+                os.link (dst, dst_by_date)
         except OSError, e:
             print e, src
 
