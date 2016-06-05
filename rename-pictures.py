@@ -11,6 +11,12 @@ import errno
 import subprocess
 import stat
 import argparse
+import pdb
+
+# variant (!!!; see https://xkcd.com/927/) of ISO 8601 compatible with Windows
+# .%f ignored because it's always 0
+# 2016/04/2016-04-30T12.59.40.jpg
+file_name_format= "%Y/%m/%Y-%m-%dT%H.%M.%S"
 
 def read_image_date (file_name):
     metadata = pyexiv2.ImageMetadata (file_name)
@@ -55,18 +61,16 @@ def rename_picture (src, opts):
         date= None
 
     if date is not None:
-        # ISO 8601
-        f= date.isoformat ()
-        # windows does not support : in filenames
-        f= f.replace (':', '.')
-
         ext= os.path.splitext (src)[1].lower ()
 
-        if opts.destination is None:
-            # 'inplace' rename
-            opts.destination= os.path.dirname (src)
+        dst= date.strftime (file_name_format)+ext
+        dst_dir, dst_name= os.path.split (dst)
 
-        dst= os.path.join (opts.destination, "%s%s" % (f, ext))
+        try:
+            os.makedirs (dst_dir)
+        except OSError as e:
+            if e.errno==17: # EEXIST
+                pass
 
         if dst==src:
             print "skipping %s: already in good format" % src
@@ -74,6 +78,7 @@ def rename_picture (src, opts):
 
         moved= False
         count= 1
+        ss= os.stat (src)
 
         while not moved:
             try:
@@ -82,16 +87,26 @@ def rename_picture (src, opts):
                 if e.errno!=errno.ENOENT:
                     print "[E:%d] %s" % (e.errno, dst)
                     return
+
+                # dst is free to take
                 moved= True
             else:
+                # foo= raw_input ('conflict found: %s -> %s; break for inspection [y/N]?' % (src, dst))
+                # if foo!='':
+                #     pdb.set_trace ()
+
+                if ds.st_size==ss.st_size:
+                    print "skipping %s: already in place -> %s" % (src, dst)
+                    return
+
                 print "[W:%s]: %s exists" % (src, dst)
-                dst= os.path.join (opts.destination, "%s_%02d%s" % (f, count, ext))
+                dst= os.path.join (dst_dir, "%s_%02d%s" % (dst_name, count, ext))
                 count+= 1
 
         print "%s -> %s" % (src, dst)
         try:
             if not opts.dry_run:
-                os.rename (src, dst)
+                os.link (src, dst)
         except OSError, e:
             print e, src
 
@@ -100,12 +115,6 @@ def rename_picture (src, opts):
 
 parser= argparse.ArgumentParser ()
 parser.add_argument ('-s', '--source', required=True)
-parser.add_argument ('-d', '--destination', default=None)
-parser.add_argument ('-p', '--in-place', action='store_true', default=False)
-parser.add_argument ('-t', '--on-date', action='store_true', default=False,
-                     help='sort files in directories called YYYY/MM-DD')
-parser.add_argument ('-m', '--use-mtime', action='store_true', default=False,
-                     help="use file's mtime instead of other metadata.")
 parser.add_argument ('-n', '--dry-run', action='store_true', default=False)
 opts= parser.parse_args (sys.argv[1:])
 
@@ -113,6 +122,7 @@ if stat.S_ISREG (os.stat (opts.source).st_mode):
     rename_picture (opts.source, opts)
 else:
     for dirpath, dirnames, filenames in os.walk (opts.source):
+        # sorting them by name helps resolving same second conflicts
         for filename in sorted (filenames):
             src= os.path.join (dirpath, filename)
 
