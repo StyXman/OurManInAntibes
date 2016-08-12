@@ -1,8 +1,5 @@
-#! /usr/bin/python2
+#! /usr/bin/python3
 
-# python2 because pyexiv2 is not on py3 yet
-
-import pyexiv2
 import sys
 import os
 import os.path
@@ -11,24 +8,27 @@ import errno
 import subprocess
 import stat
 import argparse
-import pdb
+from glob import glob
+
+from gi.repository import GExiv2, GLib
+
 
 def read_image_date (file_name):
-    metadata = pyexiv2.ImageMetadata (file_name)
     try:
-        metadata.read ()
-    except IOError:
+        metadata = GExiv2.Metadata (file_name)
+    except GLib.Error:
         return None
 
     try:
-        date= metadata['Exif.Photo.DateTimeOriginal'].value
+        date= metadata['Exif.Photo.DateTimeOriginal']
     except KeyError:
         try:
-            date= metadata['Exif.Image.DateTime'].value
+            date= metadata['Exif.Image.DateTime']
         except KeyError:
             date= None
 
-    return date
+        # '2016:07:17 16:46:04'
+    return datetime.strptime (date, '%Y:%m:%d %H:%M:%S')
 
 def read_video_date (file_name):
     cmd= 'avprobe -show_format -loglevel quiet'.split ()
@@ -52,7 +52,7 @@ def rename_picture (src, opts):
         date= read_video_date (src)
 
     if not isinstance (date, datetime):
-        print "%s: bad date field format (%r)" % (src, date)
+        print ("%s: bad date field format (%r)" % (src, date))
         date= None
 
     if date is not None:
@@ -71,15 +71,8 @@ def rename_picture (src, opts):
         # then we also link it in the by_date dir
         dst_by_date= date.strftime ("%Y/%m/"+file_name_format)+ext
 
-        try:
-            os.makedirs (dst_dir)
-        except OSError as e:
-            if e.errno==17: # EEXIST
-                pass
 
-        if dst==src:
-            print "skipping %s: already in good format" % src
-            return
+        os.makedirs (dst_dir, exist_ok=True)
 
         renamed= False
         count= 1
@@ -88,31 +81,31 @@ def rename_picture (src, opts):
         while not renamed:
             try:
                 ds= os.stat (dst)
-            except OSError, e:
+            except OSError as e:
                 if e.errno!=errno.ENOENT:
-                    print "[E:%d] %s" % (e.errno, dst)
+                    print ("[E:%d] %s" % (e.errno, dst))
                     return
 
                 # dst is free to take
                 renamed= True
             else:
-                print "[W:%s]: %s exists" % (src, dst)
+                print ("[W:%s]: %s exists" % (src, dst))
                 dst= os.path.join (dst_dir, "%s_%02d%s" % (dst_name, count, ext))
                 count+= 1
 
         try:
-            print "%s -> %s" % (src, dst)
+            print ("%s -> %s" % (src, dst))
             if not opts.dry_run:
                 os.rename (src, dst)
 
-            print "%s => %s" % (dst, dst_by_date)
+            print ("%s => %s" % (dst, dst_by_date))
             if not opts.dry_run:
                 os.link (dst, dst_by_date)
-        except OSError, e:
-            print e, src
+        except OSError as e:
+            print (e, src)
 
     else:
-        print "can't find file's date, skipping..."
+        print ("can't find file's date, skipping...")
 
 parser= argparse.ArgumentParser ()
 parser.add_argument ('-s', '--source', default='incoming/01-tmp')
