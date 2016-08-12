@@ -60,19 +60,29 @@ def rename_picture (src, opts):
         src_dir, src_name= os.path.split (src)
         ext= os.path.splitext (src_name)[1].lower ()
 
-        # first, we rename the file from DSC_XXXX.JPG to a date based name
+        # first, we rename the file from src/DSC_XXXX.JPG to a date based name
+        # like src/2016-04-30T12.59.40.jpg
+        # notice src_dir is equal to dst_dir
+
         # variant (!!!; see https://xkcd.com/927/) of ISO 8601 compatible with Windows
         # .%f ignored because it's always 0
-        # 2016/04/2016-04-30T12.59.40.jpg
         file_name_format= "%Y-%m-%dT%H.%M.%S"
-        dst= os.path.join (src_dir, date.strftime (file_name_format)+ext)
-        dst_dir, dst_name= os.path.split (dst)
+
+        # we calculate the dst_name based on a dst_base_name
+        # the reason is that later, if the base name already exists,
+        # we'll try to find alternative ones based on the base one
+        dst_dir= src_dir
+        # does not include extension
+        dst_base_name= date.strftime (file_name_format)
+        # but this one does
+        dst_name= dst_base_name+ext
+        dst= os.path.join (dst_dir, dst_name)
 
         # then we also link it in the by_date dir
-        dst_by_date= date.strftime ("%Y/%m/"+file_name_format)+ext
+        dst_by_date_dir= date.strftime ("ByDate/%Y/%m")
 
-
-        os.makedirs (dst_dir, exist_ok=True)
+        # dst_dir is also src_dir, so we know it already exists :)
+        os.makedirs (dst_by_date_dir, exist_ok=True)
 
         renamed= False
         count= 1
