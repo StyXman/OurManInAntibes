@@ -100,19 +100,28 @@ def rename_picture (src, opts):
                 renamed= True
             else:
                 print ("[W:%s]: %s exists" % (src, dst))
-                dst= os.path.join (dst_dir, "%s_%02d%s" % (dst_name, count, ext))
+                # update the dst_name with the count based prefix
+                dst_name= "%s_%02d%s" % (dst_base_name, count, ext)
+                dst= os.path.join (dst_dir, dst_name)
                 count+= 1
 
-        try:
-            print ("%s -> %s" % (src, dst))
-            if not opts.dry_run:
-                os.rename (src, dst)
+        if dst_name!=src_name:
+            try:
+                print ("%s -> %s" % (src, dst))
+                if not opts.dry_run:
+                    os.rename (src, dst)
+            except OSError as e:
+                print (e, src)
 
-            print ("%s => %s" % (dst, dst_by_date))
-            if not opts.dry_run:
-                os.link (dst, dst_by_date)
-        except OSError as e:
-            print (e, src)
+        # now the date based link uses the same dst_name for consistency
+        dst_by_date= os.path.join (dst_by_date_dir, dst_name)
+        if not os.path.exists (dst_by_date):
+            try:
+                print ("%s => %s" % (dst, dst_by_date))
+                if not opts.dry_run:
+                    os.link (dst, dst_by_date)
+            except OSError as e:
+                print (e, dst)
 
     else:
         print ("can't find file's date, skipping...")
