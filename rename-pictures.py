@@ -33,7 +33,8 @@ def read_image_date (file_name):
 def read_video_date (file_name):
     cmd= 'avprobe -show_format -loglevel quiet'.split ()
     cmd.append (file_name)
-    output= subprocess.Popen (cmd, stdout=subprocess.PIPE)
+    output= subprocess.Popen (cmd, stdout=subprocess.PIPE,
+                              universal_newlines=True)
 
     date= None
 
