@@ -25,7 +25,7 @@ def read_image_date (file_name):
         try:
             date= metadata['Exif.Image.DateTime']
         except KeyError:
-            date= None
+            return None
 
         # '2016:07:17 16:46:04'
     return datetime.strptime (date, '%Y:%m:%d %H:%M:%S')
