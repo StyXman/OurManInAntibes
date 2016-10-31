@@ -127,25 +127,27 @@ def rename_picture (src, opts):
     else:
         print ("can't find file's date, skipping...")
 
-parser= argparse.ArgumentParser ()
-parser.add_argument ('-n', '--dry-run', action='store_true', default=False)
-parser.add_argument ('sources', metavar='FILE_OR_DIR', nargs='*',
-                     default=glob ('incoming/01-tmp/DSC*'))
-opts= parser.parse_args (sys.argv[1:])
 
-for src in opts.sources:
-    try:
-        s= os.stat (src)
-    except FileNotFoundError:
-        print ("%s: File not found" % src)
-    else:
-        if stat.S_ISREG (s.st_mode):
-            rename_picture (src, opts)
+if __name__=='__main__':
+    parser= argparse.ArgumentParser ()
+    parser.add_argument ('-n', '--dry-run', action='store_true', default=False)
+    parser.add_argument ('sources', metavar='FILE_OR_DIR', nargs='*',
+                        default=glob ('incoming/01-tmp/DSC*'))
+    opts= parser.parse_args (sys.argv[1:])
+
+    for src in opts.sources:
+        try:
+            s= os.stat (src)
+        except FileNotFoundError:
+            print ("%s: File not found" % src)
         else:
-            # BUG: it could be something else..
-            for dirpath, dirnames, filenames in os.walk (src):
-                # sorting them by name helps resolving same second conflicts
-                for filename in sorted (filenames):
-                    f= os.path.join (dirpath, filename)
+            if stat.S_ISREG (s.st_mode):
+                rename_picture (src, opts)
+            else:
+                # BUG: it could be something else..
+                for dirpath, dirnames, filenames in os.walk (src):
+                    # sorting them by name helps resolving same second conflicts
+                    for filename in sorted (filenames):
+                        f= os.path.join (dirpath, filename)
 
-                    rename_picture (f, opts)
+                        rename_picture (f, opts)
