@@ -9,8 +9,13 @@ import subprocess
 import stat
 import argparse
 from glob import glob
+import logging
 
 from gi.repository import GExiv2, GLib
+
+log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
+logging.basicConfig (level=logging.INFO, format=log_format)
+logger= logging.getLogger ("rename")
 
 
 def read_image_date (file_name):
@@ -25,6 +30,7 @@ def read_image_date (file_name):
         try:
             date= metadata['Exif.Image.DateTime']
         except KeyError:
+            logger.warning ("could not read EXIF date for %s" % file_name)
             return None
 
     # '2016:07:17 16:46:04'
