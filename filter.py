@@ -269,14 +269,14 @@ class Filter (QWidget):
                 shutil.move (src, dst)
                 hugin= True
 
-            elif action in ('C', 'P'):
+            elif action=='M':
                 dst= os.path.join ('/home/mdione/Pictures/incoming/03-cur',
                                    os.path.basename (src))
                 print ("%s -> %s" % (src, dst))
                 shutil.move (src, dst)
                 gwenview= '/home/mdione/Pictures/incoming/03-new'
 
-            elif action=='P':
+            elif action=='C':
                 dst= os.path.join ('/home/mdione/Pictures/incoming/02-new/crop',
                                    os.path.basename (src))
                 print ("%s -> %s" % (src, dst))
