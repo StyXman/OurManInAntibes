@@ -50,6 +50,41 @@ def read_video_date (file_name):
 
     return date
 
+
+def build_filename (root, base_name, count, ext):
+    if count is not None:
+        base_name= "%s_%02d" % (base_name, count)
+
+    return os.path.join (root, base_name)+ext
+
+
+def is_free (src, dst):
+    free= False
+    ss= os.stat (src)
+
+    try:
+        ds= os.stat (dst)
+    except OSError as e:
+        if e.errno!=errno.ENOENT:
+            print ("[E:%d] %s" % (e.errno, dst))
+            raise
+
+        # dst is free to take
+        free= True
+    else:
+        # the dst exists, but aren't we just renaming on ourselves?
+        # that is, is the filename already in format?
+        if ds.st_ino!=ss.st_ino:
+            print ("[W:%s]: %s exists" % (src, dst))
+        else:
+            # it's the same file, so let's get out of here
+            # technically it's not free, but this ends the outer loop
+            # (see rename_picture())
+            free= True
+
+    return free
+
+
 def rename_picture (src, opts):
     date= read_image_date (src)
 
@@ -62,7 +97,7 @@ def rename_picture (src, opts):
         date= None
 
     if date is not None:
-        # we do twothings here
+        # we do two things here
         src_dir, src_name= os.path.split (src)
         ext= os.path.splitext (src_name)[1].lower ()
 
@@ -72,62 +107,55 @@ def rename_picture (src, opts):
 
         # variant (!!!; see https://xkcd.com/927/) of ISO 8601 compatible with Windows
         # .%f ignored because it's always 0
+        # TODO: put in config file
         file_name_format= "%Y-%m-%dT%H.%M.%S"
 
-        # we calculate the dst_name based on a dst_base_name
-        # the reason is that later, if the base name already exists,
-        # we'll try to find alternative ones based on the base one
         dst_dir= src_dir
         # does not include extension
         dst_base_name= date.strftime (file_name_format)
-        # but this one does
-        dst_name= dst_base_name+ext
-        dst= os.path.join (dst_dir, dst_name)
 
         # then we also link it in the by_date dir
+        # TODO: put paths in config file
         dst_by_date_dir= date.strftime ("ByDate/%Y/%m")
 
         # dst_dir is also src_dir, so we know it already exists :)
         os.makedirs (dst_by_date_dir, exist_ok=True)
 
-        renamed= False
-        count= 1
-        ss= os.stat (src)
+        free_dst= False
+        free_dst_by_date= False
+        count= None
 
-        while not renamed:
-            try:
-                ds= os.stat (dst)
-            except OSError as e:
-                if e.errno!=errno.ENOENT:
-                    print ("[E:%d] %s" % (e.errno, dst))
-                    return
+        while not free_dst and not free_dst_by_date:
+            dst = build_filename (dst_dir, dst_base_name, count, ext)
+            dst_by_date = build_filename (dst_by_date_dir, dst_base_name, count,
+                                          ext)
 
-                # dst is free to take
-                renamed= True
+            # check dst does not exist or is the same file
+            free_dst= is_free (src, dst)
+            # now dst_by_date
+            free_dst_by_date= is_free (src, dst_by_date)
+            if count is None:
+                count= 1
             else:
-                print ("[W:%s]: %s exists" % (src, dst))
-                # update the dst_name with the count based prefix
-                dst_name= "%s_%02d%s" % (dst_base_name, count, ext)
-                dst= os.path.join (dst_dir, dst_name)
                 count+= 1
 
-        if dst_name!=src_name:
+        if dst!=src:
             try:
                 print ("%s -> %s" % (src, dst))
                 if not opts.dry_run:
                     os.rename (src, dst)
             except OSError as e:
                 print (e, src)
+        else:
+            print ("%s already in good format, not renaming." % src)
 
         # now the date based link uses the same dst_name for consistency
-        dst_by_date= os.path.join (dst_by_date_dir, dst_name)
-        if not os.path.exists (dst_by_date):
-            try:
-                print ("%s => %s" % (dst, dst_by_date))
-                if not opts.dry_run:
-                    os.link (dst, dst_by_date)
-            except OSError as e:
-                print (e, dst)
+        try:
+            print ("%s => %s" % (dst_by_date, dst))
+            if not opts.dry_run:
+                os.link (dst, dst_by_date)
+        except OSError as e:
+            print (e, dst)
 
     else:
         print ("can't find file's date, skipping...")
@@ -137,7 +165,7 @@ if __name__=='__main__':
     parser= argparse.ArgumentParser ()
     parser.add_argument ('-n', '--dry-run', action='store_true', default=False)
     parser.add_argument ('sources', metavar='FILE_OR_DIR', nargs='*',
-                        default=glob ('incoming/01-tmp/DSC*'))
+                        default=glob ('incoming/01-tmp/*'))
     opts= parser.parse_args (sys.argv[1:])
 
     for src in opts.sources:
