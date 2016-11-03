@@ -13,7 +13,7 @@ from PyQt4.QtGui import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
 from PyQt4.QtGui import QPixmap, QGraphicsPixmapItem, QAction, QKeySequence
 from PyQt4.QtGui import QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy
 from PyQt4.QtGui import QFrame, QBrush, QColor, QWidget
-from PyQt4.QtCore import QTimer, QSize, Qt, QRectF
+from PyQt4.QtCore import QTimer, QSize, Qt, QRectF, QMargins
 
 from gi.repository import GExiv2, GLib
 
@@ -61,6 +61,7 @@ class Filter (QWidget):
         h.addWidget (self.tag_view)
 
         v= QVBoxLayout (self)
+        v.setContentsMargins (QMargins (0, 0, 0, 0))
         v.addWidget (self.view)
         v.addLayout (h)
 
