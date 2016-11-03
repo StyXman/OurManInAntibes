@@ -27,8 +27,13 @@ def read_image_date (file_name):
         except KeyError:
             return None
 
-        # '2016:07:17 16:46:04'
-    return datetime.strptime (date, '%Y:%m:%d %H:%M:%S')
+    # '2016:07:17 16:46:04'
+    try:
+        return datetime.strptime (date, '%Y:%m:%d %H:%M:%S')
+    except ValueError:
+        logger.warning ("could not parse EXIF date for %s: %s" % (file_name, date))
+        return None
+
 
 def read_video_date (file_name):
     cmd= 'avprobe -show_format -loglevel quiet'.split ()
