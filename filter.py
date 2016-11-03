@@ -53,12 +53,12 @@ class Filter (QWidget):
 
         self.fname= QLabel (self)
         spacer= QSpacerItem (40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.tag= QLabel (self)
+        self.tag_view= QLabel (self)
 
         h= QHBoxLayout ()
         h.addWidget (self.fname)
         h.addItem (spacer)
-        h.addWidget (self.tag)
+        h.addWidget (self.tag_view)
 
         v= QVBoxLayout (self)
         v.addWidget (self.view)
@@ -73,6 +73,7 @@ class Filter (QWidget):
                           (Qt.Key_End, self.last_image),
 
                           (Qt.Key_K, self.keep),
+                          (Qt.Key_T, self.tag),
                           (Qt.Key_S, self.stitch),
                           (Qt.Key_C, self.compare),
                           (Qt.Key_P, self.crop),
@@ -166,7 +167,7 @@ class Filter (QWidget):
         self.zoomFit (imgSize)
 
         self.fname.setText (fname)
-        self.tag.setText (self.image_actions[self.index])
+        self.tag_view.setText (self.image_actions[self.index])
 
 
     # movements
