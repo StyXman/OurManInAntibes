@@ -15,6 +15,8 @@ from PyQt4.QtGui import QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, QSizePoli
 from PyQt4.QtGui import QFrame, QBrush, QColor, QWidget
 from PyQt4.QtCore import QTimer, QSize, Qt, QRectF, QMargins
 
+import gi
+gi.require_version('GExiv2', '0.10')
 from gi.repository import GExiv2, GLib
 
 # TODO: original size + navigation
