@@ -254,7 +254,7 @@ class Filter (QWidget):
                 hugin= True
 
             elif action in ('C', 'P'):
-                dst= os.path.join ('/home/mdione/Pictures/incoming/03-new',
+                dst= os.path.join ('/home/mdione/Pictures/incoming/03-cur',
                                    os.path.basename (src))
                 print ("%s -> %s" % (src, dst))
                 shutil.move (src, dst)
