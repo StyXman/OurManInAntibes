@@ -11,6 +11,7 @@ import shutil
 
 from PyQt4.QtGui import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
 from PyQt4.QtGui import QPixmap, QGraphicsPixmapItem, QAction, QKeySequence
+from PyQt4.QtGui import QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy
 from PyQt4.QtGui import QFrame, QBrush, QColor, QWidget
 from PyQt4.QtCore import QTimer, QSize, Qt, QRectF
 
@@ -49,6 +50,19 @@ class Filter (QWidget):
         self.view.setBackgroundBrush(brush)
 
         self.view.show()
+
+        self.fname= QLabel (self)
+        spacer= QSpacerItem (40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.tag= QLabel (self)
+
+        h= QHBoxLayout ()
+        h.addWidget (self.fname)
+        h.addItem (spacer)
+        h.addWidget (self.tag)
+
+        v= QVBoxLayout (self)
+        v.addWidget (self.view)
+        v.addLayout (h)
 
         # now... ACTION!(s)
         for key, slot in ((Qt.Key_Home, self.first_image),
@@ -150,6 +164,9 @@ class Filter (QWidget):
 
         self.item.setPixmap (img)
         self.zoomFit (imgSize)
+
+        self.fname.setText (fname)
+        self.tag.setText (self.image_actions[self.index])
 
 
     # movements
@@ -268,7 +285,7 @@ DST points to the directory where the images are going to be put.
     view= Filter (win, sys.argv[1], sys.argv[2])
     firstImage= QTimer.singleShot (200, view.first_image)
 
-    win.setCentralWidget (view.view)
+    win.setCentralWidget (view)
     win.showFullScreen ()
 
     app.exec_ ()
