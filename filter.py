@@ -76,8 +76,8 @@ class Filter (QWidget):
                           (Qt.Key_K, self.keep),
                           (Qt.Key_T, self.tag),
                           (Qt.Key_S, self.stitch),
-                          (Qt.Key_C, self.compare),
-                          (Qt.Key_P, self.crop),
+                          (Qt.Key_M, self.compare),
+                          (Qt.Key_C, self.crop),
                           (Qt.Key_D, self.delete),
                           (Qt.Key_U, self.untag),
                           (Qt.Key_Return, self.apply)):
@@ -214,14 +214,14 @@ class Filter (QWidget):
         self.image_actions[self.index]= 'S'
         self.next_image ()
 
-    # Compare -> 03-cur
+    # coMpare -> 03-cur
     def compare (self, *args):
-        self.image_actions[self.index]= 'C'
+        self.image_actions[self.index]= 'M'
         self.next_image ()
 
-    # croP -> 03-cur too
+    # Crop -> launch gwenview
     def crop (self, *args):
-        self.image_actions[self.index]= 'P'
+        self.image_actions[self.index]= 'C'
         self.next_image ()
 
     # Delete -> /dev/null
