@@ -241,12 +241,26 @@ class Filter (QWidget):
         for index, action in self.image_actions.items ():
             src= self.files[index]
             if   action=='K':
-                pass
-
-            elif action=='T':
                 dst= os.path.join (self.dst, os.path.basename (src))
                 print ("%s -> %s" % (src, dst))
                 shutil.move (src, dst)
+
+            elif action=='T':
+                src_meta= GExiv2.Metadata (src)
+                src_p= QPixmap (src)
+                dst_p= src_p.scaled (4500, 3000, Qt.KeepAspectRatio,
+                                     Qt.SmoothTransformation)
+
+                dst= os.path.join (self.dst, os.path.basename (src))
+                dst_p.save (dst)
+
+                # copy all the metadata
+                dst_meta= GExiv2.Metadata (dst)
+                for tag in src_meta.get_tags ():
+                    dst_meta[tag]= src_meta[tag]
+                dst_meta.save_file ()
+
+                # os.unlink (src)
 
             elif action=='S':
                 dst= os.path.join ('/home/mdione/Pictures/incoming/02-new/stitch',
