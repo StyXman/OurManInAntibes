@@ -243,28 +243,33 @@ class Filter (QWidget):
 
             elif action=='T':
                 dst= os.path.join (self.dst, os.path.basename (src))
+                print ("%s -> %s" % (src, dst))
                 shutil.move (src, dst)
 
             elif action=='S':
                 dst= os.path.join ('/home/mdione/Pictures/incoming/02-new/stitch',
                                    os.path.basename (src))
+                print ("%s -> %s" % (src, dst))
                 shutil.move (src, dst)
                 hugin= True
 
             elif action in ('C', 'P'):
                 dst= os.path.join ('/home/mdione/Pictures/incoming/03-new',
                                    os.path.basename (src))
+                print ("%s -> %s" % (src, dst))
                 shutil.move (src, dst)
                 gwenview= '/home/mdione/Pictures/incoming/03-new'
 
             elif action=='P':
                 dst= os.path.join ('/home/mdione/Pictures/incoming/02-new/crop',
                                    os.path.basename (src))
+                print ("%s -> %s" % (src, dst))
                 shutil.move (src, dst)
                 gwenview= '/home/mdione/Pictures/incoming/02-crop'
 
             elif action=='D':
                 os.unlink (src)
+                print ("%s deleted" % (src, ))
 
         self.image_actions.clear ()
         self.scan (self.src)
