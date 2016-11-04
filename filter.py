@@ -42,6 +42,9 @@ class Filter (QWidget):
 
         self.buildUI (parent)
 
+        self.dir_dialog= QFileDialog (self)
+        self.dir_dialog.setFileMode (QFileDialog.Directory)
+
 
     def buildUI(self, parent):
         self.scene= QGraphicsScene ()
@@ -92,7 +95,8 @@ class Filter (QWidget):
                           (Qt.Key_U, self.untag),
                           (Qt.Key_Return, self.apply),
 
-                          (Qt.CTRL+Qt.Key_O, self.new_dst),):
+                          (Qt.CTRL+Qt.Key_O, self.new_dst),
+                          (Qt.CTRL+Qt.Key_S, self.save),):
             action= QAction (parent)
             action.setShortcut(QKeySequence(key))
             action.triggered.connect (slot)
@@ -340,12 +344,22 @@ class Filter (QWidget):
 
 
     def new_dst (self, *args):
-        print ('new dst')
-        d= QFileDialog (self)
-        d.setFileMode (QFileDialog.Directory)
-        d.setDirectory (self.dst)
-        if d.exec ():
-            self.dst= d.selectedFiles()[0]
+        self.dir_dialog.setDirectory (self.dst)
+        if self.dir_dialog.exec ():
+            self.dst= self.dir_dialog.selectedFiles()[0]
+
+
+    def save (self, *args):
+        src= self.files[self.index]
+        self.dir_dialog.setDirectory (self.dst)
+        if self.dir_dialog.exec ():
+            dst_dir= self.dir_dialog.selectedFiles()[0]
+            dst= os.path.join (dst_dir, os.path.basename (src))
+
+            print ("%s -> %s" % (src, dst))
+            shutil.move (src, dst)
+
+            self.next_image ()
 
 
 if __name__=='__main__':
