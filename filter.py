@@ -180,7 +180,8 @@ class Filter (QWidget):
         self.imgSize= self.rotate ()
 
         self.item.setPixmap (self.img)
-        self.zoom_to_fit ()
+        if self.zoomLevel!=1.0:
+            self.zoom_to_fit ()
 
         self.fname.setText (fname)
         self.tag_view.setText (self.image_actions[self.index])
