@@ -22,6 +22,9 @@ from gi.repository import GExiv2, GLib
 # TODO: original size + navigation
 # TODO: config file
 class Filter (QWidget):
+    label_map= { 'K': 'Keep', 'T': 'Tag', 'S': 'Stitch', 'M': 'Compare',
+                 'C': 'Crop', 'D': 'Delete', None: '' }
+
     def __init__ (self, parent, src, dst):
         QWidget.__init__ (self, parent)
         self.zoomLevel= 1.0
@@ -184,7 +187,8 @@ class Filter (QWidget):
             self.zoom_to_fit ()
 
         self.fname.setText (fname)
-        self.tag_view.setText (self.image_actions[self.index])
+        label= self.label_map[self.image_actions[self.index]]
+        self.tag_view.setText (label)
 
 
     # movements
@@ -258,6 +262,8 @@ class Filter (QWidget):
     def untag (self, *args):
         del self.image_actions[self.index]
         # don't move, most probably I'm reconsidering what to do
+        # but change the label
+        self.tag_view.setText ('')
 
 
     def apply (self, *args):
