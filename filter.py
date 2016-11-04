@@ -256,7 +256,7 @@ class Filter (QWidget):
 
     def untag (self, *args):
         del self.image_actions[self.index]
-        self.next_image ()
+        # don't move, most probably I'm reconsidering what to do
 
 
     def apply (self, *args):
