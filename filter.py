@@ -12,7 +12,7 @@ import shutil
 from PyQt4.QtGui import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
 from PyQt4.QtGui import QPixmap, QGraphicsPixmapItem, QAction, QKeySequence
 from PyQt4.QtGui import QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy
-from PyQt4.QtGui import QFrame, QBrush, QColor, QWidget
+from PyQt4.QtGui import QFrame, QBrush, QColor, QWidget, QFileDialog
 from PyQt4.QtCore import QTimer, QSize, Qt, QRectF, QMargins
 
 import gi
@@ -87,7 +87,9 @@ class Filter (QWidget):
                           (Qt.Key_C, self.crop),
                           (Qt.Key_D, self.delete),
                           (Qt.Key_U, self.untag),
-                          (Qt.Key_Return, self.apply)):
+                          (Qt.Key_Return, self.apply),
+
+                          (Qt.CTRL+Qt.Key_O, self.new_dst),):
             action= QAction (parent)
             action.setShortcut(QKeySequence(key))
             action.triggered.connect (slot)
@@ -322,6 +324,15 @@ class Filter (QWidget):
 
         self.image_actions.clear ()
         self.scan (self.src)
+
+
+    def new_dst (self, *args):
+        print ('new dst')
+        d= QFileDialog (self)
+        d.setFileMode (QFileDialog.Directory)
+        d.setDirectory (self.dst)
+        if d.exec ():
+            self.dst= d.selectedFiles()[0]
 
 
 if __name__=='__main__':
