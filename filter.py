@@ -27,6 +27,9 @@ class Filter (QWidget):
         self.zoomLevel= 1.0
         self.rotation= 0
 
+        self.img= None
+        self.metadata= None
+
         self.src= src
         self.dst= dst
         self.files= []
@@ -75,6 +78,8 @@ class Filter (QWidget):
                           (Qt.Key_PageDown, self.next_ten),
                           (Qt.Key_End, self.last_image),
 
+                          (Qt.Key_F, self.toggle_fullsize),
+
                           (Qt.Key_K, self.keep),
                           (Qt.Key_T, self.tag),
                           (Qt.Key_S, self.stitch),
@@ -98,12 +103,13 @@ class Filter (QWidget):
                     self.files.append (os.path.join (r, name))
 
 
-    def rotate (self, metadata, origImgSize):
+    def rotate (self):
+        origImgSize= self.img.size ()
         # Qt only handles orientation properly from v5.5
         try:
             # try directly to get the tag, because sometimes get_tags() returns
             # tags that don't actually are in the file
-            rot= metadata['Exif.Image.Orientation']
+            rot= self.metadata['Exif.Image.Orientation']
         except KeyError:
             # guess :-/
             print ("rotation 'guessed'")
@@ -132,7 +138,7 @@ class Filter (QWidget):
         return imgSize
 
 
-    def zoomFit (self, imgSize):
+    def zoom_to_fit (self):
         winSize= self.view.size ()
         # print (imgSize, winSize)
 
@@ -141,15 +147,20 @@ class Filter (QWidget):
         boundingRect= QRectF (self.item.pixmap ().rect ())
         self.scene.setSceneRect (boundingRect)
 
-        hZoom= winSize.width  ()/imgSize.width  ()
-        vZoom= winSize.height ()/imgSize.height ()
+        hZoom= winSize.width  ()/self.imgSize.width  ()
+        vZoom= winSize.height ()/self.imgSize.height ()
         zoomLevel= min (hZoom, vZoom)
-        # print (zoomLevel)
 
+        self.zoom (zoomLevel)
+
+
+    def zoom (self, zoomLevel):
+        # print (zoomLevel)
         scale= zoomLevel/self.zoomLevel
         # print ("scaling", scale)
         self.view.scale (scale, scale)
         self.view.centerOn (self.item)
+
         self.zoomLevel= zoomLevel
 
 
@@ -161,13 +172,13 @@ class Filter (QWidget):
 
 
     def show_image (self, fname):
-        metadata= GExiv2.Metadata (fname)
+        self.metadata= GExiv2.Metadata (fname)
 
-        img= QPixmap (fname)
-        imgSize= self.rotate (metadata, img.size ())
+        self.img= QPixmap (fname)
+        self.imgSize= self.rotate ()
 
-        self.item.setPixmap (img)
-        self.zoomFit (imgSize)
+        self.item.setPixmap (self.img)
+        self.zoom_to_fit ()
 
         self.fname.setText (fname)
         self.tag_view.setText (self.image_actions[self.index])
@@ -198,6 +209,16 @@ class Filter (QWidget):
         self.index= len (self.files)-1
         self.show_image (self.files[self.index])
         # print (self.image_actions)
+
+
+    def toggle_fullsize (self, *args):
+        # noooooooooooooooothing compares...
+        if abs (self.zoomLevel-1.0) < 0.000001:
+            # print ('fit')
+            self.zoom_to_fit ()
+        else:
+            # print ('orig')
+            self.zoom (1.0)
 
 
     # image actions
