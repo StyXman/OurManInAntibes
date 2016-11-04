@@ -263,8 +263,8 @@ class Filter (QWidget):
 
         for index, action in self.image_actions.items ():
             src= self.files[index]
+            dst= os.path.join (self.dst, os.path.basename (src))
             if   action=='K':
-                dst= os.path.join (self.dst, os.path.basename (src))
                 print ("%s -> %s" % (src, dst))
                 shutil.move (src, dst)
 
@@ -274,7 +274,6 @@ class Filter (QWidget):
                 dst_p= src_p.scaled (4500, 3000, Qt.KeepAspectRatio,
                                      Qt.SmoothTransformation)
 
-                dst= os.path.join (self.dst, os.path.basename (src))
                 dst_p.save (dst)
 
                 # copy all the metadata
@@ -300,15 +299,26 @@ class Filter (QWidget):
                 gwenview= '/home/mdione/Pictures/incoming/03-new'
 
             elif action=='C':
-                dst= os.path.join ('/home/mdione/Pictures/incoming/02-new/crop',
-                                   os.path.basename (src))
-                print ("%s -> %s" % (src, dst))
-                shutil.move (src, dst)
-                gwenview= '/home/mdione/Pictures/incoming/02-crop'
+                os.system ('gwenview %s' % src)
+
+                # asume the file was saved under a new name
+                # print ("%s -> %s" % (src, dst))
+                # shutil.move (src, dst)
+
 
             elif action=='D':
                 os.unlink (src)
                 print ("%s deleted" % (src, ))
+
+        if hugin:
+            os.system ('hugin')
+
+        self.reset (new_root)
+
+
+    def reset (self, new_root=None):
+        if new_root is not None:
+            self.src= new_root
 
         self.image_actions.clear ()
         self.scan (self.src)
