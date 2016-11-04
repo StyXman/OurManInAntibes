@@ -266,51 +266,57 @@ class Filter (QWidget):
         for index, action in self.image_actions.items ():
             src= self.files[index]
             dst= os.path.join (self.dst, os.path.basename (src))
-            if   action=='K':
-                print ("%s -> %s" % (src, dst))
-                shutil.move (src, dst)
 
-            elif action=='T':
-                src_meta= GExiv2.Metadata (src)
-                src_p= QPixmap (src)
-                dst_p= src_p.scaled (4500, 3000, Qt.KeepAspectRatio,
-                                     Qt.SmoothTransformation)
+            try:
+                if   action=='K':
+                    print ("%s -> %s" % (src, dst))
+                    shutil.move (src, dst)
 
-                dst_p.save (dst)
+                elif action=='T':
+                    src_meta= GExiv2.Metadata (src)
+                    src_p= QPixmap (src)
+                    dst_p= src_p.scaled (4500, 3000, Qt.KeepAspectRatio,
+                                        Qt.SmoothTransformation)
 
-                # copy all the metadata
-                dst_meta= GExiv2.Metadata (dst)
-                for tag in src_meta.get_tags ():
-                    dst_meta[tag]= src_meta[tag]
-                dst_meta.save_file ()
+                    dst_p.save (dst)
 
-                # os.unlink (src)
+                    # copy all the metadata
+                    dst_meta= GExiv2.Metadata (dst)
+                    for tag in src_meta.get_tags ():
+                        dst_meta[tag]= src_meta[tag]
+                    dst_meta.save_file ()
 
-            elif action=='S':
-                dst= os.path.join ('/home/mdione/Pictures/incoming/02-new/stitch',
-                                   os.path.basename (src))
-                print ("%s -> %s" % (src, dst))
-                shutil.move (src, dst)
-                hugin= True
+                    # os.unlink (src)
 
-            elif action=='M':
-                dst= os.path.join ('/home/mdione/Pictures/incoming/03-cur',
-                                   os.path.basename (src))
-                print ("%s -> %s" % (src, dst))
-                shutil.move (src, dst)
-                gwenview= '/home/mdione/Pictures/incoming/03-new'
+                elif action=='S':
+                    dst= os.path.join ('/home/mdione/Pictures/incoming/02-new/stitch',
+                                    os.path.basename (src))
+                    print ("%s -> %s" % (src, dst))
+                    shutil.move (src, dst)
+                    hugin= True
 
-            elif action=='C':
-                os.system ('gwenview %s' % src)
+                elif action=='M':
+                    dst= os.path.join ('/home/mdione/Pictures/incoming/03-cur',
+                                    os.path.basename (src))
+                    print ("%s -> %s" % (src, dst))
+                    shutil.move (src, dst)
 
-                # asume the file was saved under a new name
-                # print ("%s -> %s" % (src, dst))
-                # shutil.move (src, dst)
+                    new_root= '/home/mdione/Pictures/incoming/03-cur'
+                    old_root= self.src
+
+                elif action=='C':
+                    os.system ('gwenview %s' % src)
+
+                    # asume the file was saved under a new name
+                    # print ("%s -> %s" % (src, dst))
+                    # shutil.move (src, dst)
 
 
-            elif action=='D':
-                os.unlink (src)
-                print ("%s deleted" % (src, ))
+                elif action=='D':
+                    os.unlink (src)
+                    print ("%s deleted" % (src, ))
+            except FileNotFoundError as e:
+                print (e)
 
         if hugin:
             os.system ('hugin')
