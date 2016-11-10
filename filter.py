@@ -20,6 +20,9 @@ import gi
 gi.require_version('GExiv2', '0.10')
 from gi.repository import GExiv2, GLib
 
+import workflow
+from rename_pictures import rename_picture
+
 import logging
 log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
 logging.basicConfig (level=logging.DEBUG, format=log_format)
@@ -381,6 +384,10 @@ if __name__=='__main__':
     config= ConfigParser ()
     config.read ('omia.ini')
 
+    # import
+    src= config['Directories']['src']
+    mid= config['Directories']['mid']
+    workflow.import_files (src, mid)
 
     app= QApplication (sys.argv)
     win= QMainWindow ()
