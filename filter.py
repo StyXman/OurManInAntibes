@@ -8,6 +8,7 @@ import os.path
 import sys
 from collections import defaultdict
 import shutil
+from configparser import ConfigParser
 
 from PyQt4.QtGui import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
 from PyQt4.QtGui import QPixmap, QGraphicsPixmapItem, QAction, QKeySequence
@@ -25,7 +26,7 @@ class Filter (QWidget):
     label_map= { 'K': 'Keep', 'T': 'Tag', 'S': 'Stitch', 'M': 'Compare',
                  'C': 'Crop', 'D': 'Delete', None: '' }
 
-    def __init__ (self, parent, src, dst):
+    def __init__ (self, parent, config):
         QWidget.__init__ (self, parent)
         self.zoomLevel= 1.0
         self.rotation= 0
@@ -33,11 +34,12 @@ class Filter (QWidget):
         self.img= None
         self.metadata= None
 
-        self.src= src
-        self.dst= dst
         self.files= []
         self.image_actions= defaultdict (lambda: None)
-        self.scan (src)
+
+        self.src= config['Directories']['mid']
+        self.dst= None
+        self.scan (self.src)
         self.index= 0
 
         self.buildUI (parent)
@@ -363,18 +365,14 @@ class Filter (QWidget):
 
 
 if __name__=='__main__':
-    if len (sys.argv)<3:  # awwww :)
-        print ("""usage: %s SRC DST
+    config= ConfigParser ()
+    config.read ('omia.ini')
 
-SRC points to the root directory where the images are going to be picked up.
-DST points to the directory where the images are going to be put.
-""" % sys.argv[0])
-        sys.exit (1)
 
     app= QApplication (sys.argv)
     win= QMainWindow ()
 
-    view= Filter (win, sys.argv[1], sys.argv[2])
+    view= Filter (win, config)
     firstImage= QTimer.singleShot (200, view.first_image)
 
     win.setCentralWidget (view)
