@@ -56,6 +56,7 @@ class Filter (QWidget):
         self.dst= None
         self.scan (self.src)
         self.index= 0
+        self.file= None
 
         self.buildUI (parent)
 
@@ -196,21 +197,20 @@ class Filter (QWidget):
             self.index= to
         self.index+= how_much
         self.index%= len (self.files)
+        self.file= self.files[self.index]
 
-        return self.files[self.index]
 
+    def show_image (self):
+        self.metadata= GExiv2.Metadata (self.file)
 
-    def show_image (self, fname):
-        self.metadata= GExiv2.Metadata (fname)
-
-        self.img= QPixmap (fname)
+        self.img= QPixmap (self.file)
         self.imgSize= self.rotate ()
 
         self.item.setPixmap (self.img)
         if self.zoomLevel!=1.0:
             self.zoom_to_fit ()
 
-        self.fname.setText (fname)
+        self.fname.setText (self.file)
         label= self.label_map[self.image_actions[self.index]]
         self.tag_view.setText (label)
 
@@ -218,28 +218,27 @@ class Filter (QWidget):
     # movements
     def first_image (self, *args):
         self.move_index (to=0)
-        self.show_image (self.files[self.index])
+        self.show_image ()
 
     def prev_ten (self, *args):
         self.move_index (how_much=-10)
         self.show_image ()
 
     def prev_image (self, *args):
-        fname= self.move_index (-1)
-        self.show_image (fname)
+        self.move_index (how_much=-1)
+        self.show_image ()
 
     def next_image (self, *args):
-        fname= self.move_index (+1)
-        self.show_image (fname)
+        self.move_index (how_much=+1)
+        self.show_image ()
 
     def next_ten (self, *args):
-        fname= self.move_index (+10)
-        self.show_image (fname)
+        self.move_index (how_much=+10)
+        self.show_image ()
 
     def last_image (self, *args):
-        self.index= len (self.files)-1
-        self.show_image (self.files[self.index])
-        # logger.info (self.image_actions)
+        self.move_index (to=len (self.files)-1)
+        self.show_image ()
 
 
     def toggle_fullsize (self, *args):
