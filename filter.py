@@ -302,6 +302,7 @@ class Filter (QWidget):
                     shutil.move (src, dst)
 
                 elif action=='T':
+                    # Tag -> /gallery/foo, as-is
                     src_meta= GExiv2.Metadata (src)
                     src_p= QPixmap (src)
                     dst_p= src_p.scaled (4500, 3000, Qt.KeepAspectRatio,
@@ -318,6 +319,7 @@ class Filter (QWidget):
                     # os.unlink (src)
 
                 elif action=='S':
+                    # Stitch -> 02-new/stitch
                     dst= os.path.join ('/home/mdione/Pictures/incoming/02-new/stitch',
                                     os.path.basename (src))
                     logger.info ("%s -> %s" % (src, dst))
@@ -325,6 +327,7 @@ class Filter (QWidget):
                     hugin= True
 
                 elif action=='M':
+                    # coMpare -> 03-cur
                     dst= os.path.join ('/home/mdione/Pictures/incoming/03-cur',
                                     os.path.basename (src))
                     logger.info ("%s -> %s" % (src, dst))
@@ -334,6 +337,7 @@ class Filter (QWidget):
                     old_root= self.src
 
                 elif action=='C':
+                    # Crop -> launch gwenview
                     os.system ('gwenview %s' % src)
 
                     # asume the file was saved under a new name
@@ -342,6 +346,7 @@ class Filter (QWidget):
 
 
                 elif action=='D':
+                    # Delete -> /dev/null
                     os.unlink (src)
                     logger.info ("%s deleted" % (src, ))
             except FileNotFoundError as e:
