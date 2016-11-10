@@ -40,7 +40,7 @@ class Filter (QWidget):
     label_map= { 'K': 'Keep', 'T': 'Tag', 'S': 'Stitch', 'M': 'Compare',
                  'C': 'Crop', 'D': 'Delete', None: '' }
 
-    def __init__ (self, parent, config):
+    def __init__ (self, parent, config, new_files):
         QWidget.__init__ (self, parent)
         self.zoomLevel= 1.0
         self.rotation= 0
@@ -50,6 +50,7 @@ class Filter (QWidget):
 
         self.files= []
         self.image_actions= defaultdict (lambda: None)
+        self.new_files = new_files
 
         self.src= config['Directories']['mid']
         self.dst= None
@@ -396,12 +397,12 @@ if __name__=='__main__':
     # import
     src= config['Directories']['src']
     mid= config['Directories']['mid']
-    workflow.import_files (src, mid)
+    new= workflow.import_files (src, mid)
 
     app= QApplication (sys.argv)
     win= QMainWindow ()
 
-    view= Filter (win, config)
+    view= Filter (win, config, new)
     firstImage= QTimer.singleShot (200, view.first_image)
 
     win.setCentralWidget (view)
