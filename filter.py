@@ -13,7 +13,7 @@ from PyQt4.QtGui import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
 from PyQt4.QtGui import QPixmap, QGraphicsPixmapItem, QAction, QKeySequence
 from PyQt4.QtGui import QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy
 from PyQt4.QtGui import QFrame, QBrush, QColor, QWidget, QFileDialog
-from PyQt4.QtCore import QTimer, QSize, Qt, QRectF, QMargins
+from PyQt4.QtCore import QTimer, QSize, Qt, QRectF, QMargins, QPoint
 
 import gi
 gi.require_version('GExiv2', '0.10')
@@ -37,6 +37,8 @@ class Filter (QWidget):
         self.dst= dst
         self.files= []
         self.image_actions= defaultdict (lambda: None)
+        self.image_positions= {}
+        self.original_position= None
         self.scan (src)
         self.index= 0
 
@@ -174,10 +176,18 @@ class Filter (QWidget):
 
 
     def move_index(self, inc):
+        self.save_position ()
         self.index+= inc
         self.index%= len (self.files)
 
         return self.files[self.index]
+
+
+    def view_position (self):
+        view_size= self.view.size ()
+        center= QPoint (view_size.width ()/2, view_size.height ()/2)
+        position= self.view.mapToScene (center)
+        return position
 
 
     def show_image (self, fname):
@@ -190,9 +200,28 @@ class Filter (QWidget):
         if self.zoomLevel!=1.0:
             self.zoom_to_fit ()
 
+        if self.index in self.image_positions:
+            self.original_position= None
+            position= self.image_positions[self.index]
+            logger.info ("previously moved, back to that point: %f x %f", position.x(), position.y())
+            self.view.centerOn (position)
+        else:
+            # TODO: 'undo' the move
+            position= self.view_position ()
+            logger.info ("original position: %f x %f", position.x(), position.y())
+            self.original_position= position
+
         self.fname.setText (fname)
         label= self.label_map[self.image_actions[self.index]]
         self.tag_view.setText (label)
+
+
+    def save_position (self):
+        position= self.view_position ()
+        logger.info ("saving position: %f x %f", position.x(), position.y())
+        if position!=self.original_position:
+            # this way (I hope) I only remember those positions which changed
+            self.image_positions[self.index]= position
 
 
     # movements
