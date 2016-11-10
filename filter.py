@@ -20,13 +20,18 @@ import gi
 gi.require_version('GExiv2', '0.10')
 from gi.repository import GExiv2, GLib
 
-# TODO: original size + navigation
-# TODO: config file
-
 import logging
 log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
 logging.basicConfig (level=logging.DEBUG, format=log_format)
 logger= logging.getLogger ("omia")
+
+# TODO:
+# config file (done partially)
+# properly handle reload/other dirs (compare)
+#   compare by just navigating through selected images
+# save w/ resize
+# rotate
+
 
 class Filter (QWidget):
     label_map= { 'K': 'Keep', 'T': 'Tag', 'S': 'Stitch', 'M': 'Compare',
