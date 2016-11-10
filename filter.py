@@ -291,7 +291,8 @@ class Filter (QWidget):
         hugin= False
         gwenview= False
 
-        for index, action in self.image_actions.items ():
+        for index, action in sorted (self.image_actions.items (),
+                                     key=lambda s: s[0]):  # sort by key
             src= self.files[index]
             dst= os.path.join (self.dst, os.path.basename (src))
 
