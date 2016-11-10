@@ -191,8 +191,10 @@ class Filter (QWidget):
         self.zoomLevel= zoomLevel
 
 
-    def move_index(self, inc):
-        self.index+= inc
+    def move_index(self, to=None, how_much=0):
+        if to is not None:
+            self.index= to
+        self.index+= how_much
         self.index%= len (self.files)
 
         return self.files[self.index]
@@ -215,12 +217,12 @@ class Filter (QWidget):
 
     # movements
     def first_image (self, *args):
-        self.index= 0
+        self.move_index (to=0)
         self.show_image (self.files[self.index])
 
     def prev_ten (self, *args):
-        fname= self.move_index (-10)
-        self.show_image (fname)
+        self.move_index (how_much=-10)
+        self.show_image ()
 
     def prev_image (self, *args):
         fname= self.move_index (-1)
