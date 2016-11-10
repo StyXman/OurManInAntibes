@@ -22,6 +22,12 @@ from gi.repository import GExiv2, GLib
 
 # TODO: original size + navigation
 # TODO: config file
+
+import logging
+log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
+logging.basicConfig (level=logging.DEBUG, format=log_format)
+logger= logging.getLogger ("omia")
+
 class Filter (QWidget):
     label_map= { 'K': 'Keep', 'T': 'Tag', 'S': 'Stitch', 'M': 'Compare',
                  'C': 'Crop', 'D': 'Delete', None: '' }
@@ -106,11 +112,11 @@ class Filter (QWidget):
 
 
     def scan (self, src):
-        # print ('scanning %s' % src)
+        logger.debug ('scanning %r', src)
         for r, dirs, files in os.walk (os.path.abspath (src)):
             for name in sorted(files):
                 if name[-4:].lower () in ('.jpg', '.png'):
-                    # print ('found %s' % name)
+                    # logger.info ('found %s' % name)
                     self.files.append (os.path.join (r, name))
 
 
@@ -123,7 +129,7 @@ class Filter (QWidget):
             rot= self.metadata['Exif.Image.Orientation']
         except KeyError:
             # guess :-/
-            print ("rotation 'guessed'")
+            logger.info ("rotation 'guessed'")
             rot= '1'
 
         # see http://www.daveperrett.com/images/articles/2012-07-28-exif-orientation-handling-is-a-ghetto/EXIF_Orientations.jpg
@@ -144,18 +150,19 @@ class Filter (QWidget):
         # undo the last rotation and apply the new one
         self.view.rotate (-self.rotation+rotate)
         self.rotation= rotate
-        # print (rot, rotate, self.rotation)
+        # logger.info (rot, rotate, self.rotation)
 
         return imgSize
 
 
     def zoom_to_fit (self):
         winSize= self.view.size ()
-        # print (imgSize, winSize)
+        # logger.info (imgSize, winSize)
 
         # we might have rotated the view, but the scene still has the image
         # in its original size, so we use that as bounding rect
         boundingRect= QRectF (self.item.pixmap ().rect ())
+        logger.info (boundingRect)
         self.scene.setSceneRect (boundingRect)
 
         hZoom= winSize.width  ()/self.imgSize.width  ()
@@ -166,9 +173,9 @@ class Filter (QWidget):
 
 
     def zoom (self, zoomLevel):
-        # print (zoomLevel)
+        # logger.info (zoomLevel)
         scale= zoomLevel/self.zoomLevel
-        # print ("scaling", scale)
+        # logger.info ("scaling", scale)
         self.view.scale (scale, scale)
         self.view.centerOn (self.item)
 
@@ -221,16 +228,16 @@ class Filter (QWidget):
     def last_image (self, *args):
         self.index= len (self.files)-1
         self.show_image (self.files[self.index])
-        # print (self.image_actions)
+        # logger.info (self.image_actions)
 
 
     def toggle_fullsize (self, *args):
         # noooooooooooooooothing compares...
         if abs (self.zoomLevel-1.0) < 0.000001:
-            # print ('fit')
+            # logger.info ('fit')
             self.zoom_to_fit ()
         else:
-            # print ('orig')
+            # logger.info ('orig')
             self.zoom (1.0)
 
 
@@ -282,7 +289,8 @@ class Filter (QWidget):
 
             try:
                 if   action=='K':
-                    print ("%s -> %s" % (src, dst))
+                    # Keep -> /gallery/foo, resized
+                    logger.info ("%s -> %s" % (src, dst))
                     shutil.move (src, dst)
 
                 elif action=='T':
@@ -304,14 +312,14 @@ class Filter (QWidget):
                 elif action=='S':
                     dst= os.path.join ('/home/mdione/Pictures/incoming/02-new/stitch',
                                     os.path.basename (src))
-                    print ("%s -> %s" % (src, dst))
+                    logger.info ("%s -> %s" % (src, dst))
                     shutil.move (src, dst)
                     hugin= True
 
                 elif action=='M':
                     dst= os.path.join ('/home/mdione/Pictures/incoming/03-cur',
                                     os.path.basename (src))
-                    print ("%s -> %s" % (src, dst))
+                    logger.info ("%s -> %s" % (src, dst))
                     shutil.move (src, dst)
 
                     new_root= '/home/mdione/Pictures/incoming/03-cur'
@@ -321,15 +329,15 @@ class Filter (QWidget):
                     os.system ('gwenview %s' % src)
 
                     # asume the file was saved under a new name
-                    # print ("%s -> %s" % (src, dst))
+                    # logger.info ("%s -> %s" % (src, dst))
                     # shutil.move (src, dst)
 
 
                 elif action=='D':
                     os.unlink (src)
-                    print ("%s deleted" % (src, ))
+                    logger.info ("%s deleted" % (src, ))
             except FileNotFoundError as e:
-                print (e)
+                logger.info (e)
 
         if hugin:
             os.system ('hugin')
@@ -358,7 +366,7 @@ class Filter (QWidget):
             dst_dir= self.dir_dialog.selectedFiles()[0]
             dst= os.path.join (dst_dir, os.path.basename (src))
 
-            print ("%s -> %s" % (src, dst))
+            logger.info ("%s -> %s" % (src, dst))
             shutil.move (src, dst)
 
             self.next_image ()
