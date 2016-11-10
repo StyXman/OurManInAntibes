@@ -5,10 +5,6 @@ import os.path
 import shutil
 from rename_pictures import rename_picture
 
-class Opts:
-    pass
-
-
 import logging
 log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
 logging.basicConfig (level=logging.INFO, format=log_format)
@@ -44,7 +40,7 @@ def rename():
 
     for root, dirs, files in os.walk('/home/mdione/Pictures/incoming/01-tmp'):
         for file in sorted(files):
-            rename_picture(os.path.join(root, file), opts)
+            rename_picture(os.path.join(root, file))
 
 
 def main ():
