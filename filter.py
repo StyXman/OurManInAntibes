@@ -291,6 +291,9 @@ class Filter (QWidget):
         hugin= False
         gwenview= False
 
+        if self.dst is None:
+            self.new_dst ()
+
         for index, action in sorted (self.image_actions.items (),
                                      key=lambda s: s[0]):  # sort by key
             src= self.files[index]
