@@ -15,20 +15,25 @@ logging.basicConfig (level=logging.INFO, format=log_format)
 logger= logging.getLogger ("workflow")
 
 # SD -> 01-tmp
-def import_files(move=True):
+def import_files(src_dir, dst_dir, move=True):
+    imported= []
+
     if move:
         op = shutil.move
     else:
         op = shutil.copy
 
     # TODO: put paths in config file
-    for root, dirs, files in os.walk('/home/mdione/media/Nikon D7200/DCIM/'):
+    for root, dirs, files in os.walk(src_dir):
         for file in files:
             src = os.path.join(root, file)
-            dst = os.path.join('/home/mdione/Pictures/incoming/01-tmp', file)
+            dst = os.path.join(dst_dir, file)
 
             logger.info("%s -> %s", src, dst)
             op(src, dst)
+            imported.append (dst)
+
+    return imported
 
 
 # NKN_XXX -> date based
@@ -42,11 +47,9 @@ def rename():
             rename_picture(os.path.join(root, file), opts)
 
 
-# Tag -> 02-new/foo
-
-
 def main ():
-    import_files()
+    import_files('/home/mdione/media/Nikon D7200/DCIM/',
+                 '/home/mdione/Pictures/incoming/01-tmp')
     rename()
 
 if __name__ == '__main__':
