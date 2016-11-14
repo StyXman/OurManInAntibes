@@ -301,6 +301,10 @@ class Filter (QWidget):
             dst= os.path.join (self.dst, os.path.basename (src))
 
             try:
+                if src in self.new_files and action not in ('C', 'D'):
+                    # rename
+                    src= rename_picture (src)
+
                 if   action=='K':
                     # Keep -> /gallery/foo, resized
                     logger.info ("%s -> %s" % (src, dst))
