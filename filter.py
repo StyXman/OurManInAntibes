@@ -211,7 +211,7 @@ class Filter (QWidget):
             self.zoom_to_fit ()
 
         self.fname.setText (self.file)
-        label= self.label_map[self.image_actions[self.index]]
+        label= self.label_map[self.image_actions[self.file]]
         self.tag_view.setText (label)
 
 
@@ -254,36 +254,36 @@ class Filter (QWidget):
     # image actions
     # Keep -> /gallery/foo, resized
     def keep (self, *args):
-        self.image_actions[self.index]= 'K'
+        self.image_actions[self.file]= 'K'
         self.next_image ()
 
     # Tag -> /gallery/foo, as-is
     def tag (self, *args):
-        self.image_actions[self.index]= 'T'
+        self.image_actions[self.file]= 'T'
         self.next_image ()
 
     # Stitch -> 02-new/stitch
     def stitch (self, *args):
-        self.image_actions[self.index]= 'S'
+        self.image_actions[self.file]= 'S'
         self.next_image ()
 
     # coMpare -> 03-cur
     def compare (self, *args):
-        self.image_actions[self.index]= 'M'
+        self.image_actions[self.file]= 'M'
         self.next_image ()
 
     # Crop -> launch gwenview
     def crop (self, *args):
-        self.image_actions[self.index]= 'C'
+        self.image_actions[self.file]= 'C'
         self.next_image ()
 
     # Delete -> /dev/null
     def delete (self, *args):
-        self.image_actions[self.index]= 'D'
+        self.image_actions[self.file]= 'D'
         self.next_image ()
 
     def untag (self, *args):
-        del self.image_actions[self.index]
+        del self.image_actions[self.file]
         # don't move, most probably I'm reconsidering what to do
         # but change the label
         self.tag_view.setText ('')
@@ -296,9 +296,8 @@ class Filter (QWidget):
         if self.dst is None:
             self.new_dst ()
 
-        for index, action in sorted (self.image_actions.items (),
-                                     key=lambda s: s[0]):  # sort by key
-            src= self.files[index]
+        for src, action in sorted (self.image_actions.items (),
+                                   key=lambda s: s[0]):  # sort by fname
             dst= os.path.join (self.dst, os.path.basename (src))
 
             try:
