@@ -162,6 +162,8 @@ def rename_picture (src, dry_run=False):
                 os.link (dst, dst_by_date)
         except OSError as e:
             print (e, dst)
+        else:
+            return dst
 
     else:
         print ("can't find file's date, skipping...")
