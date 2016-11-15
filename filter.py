@@ -397,7 +397,7 @@ class Filter (QWidget):
         if hugin:
             os.system ('hugin')
 
-        self.reset (new_root)
+        self.reset ()
 
 
     def reset (self, new_root=None):
