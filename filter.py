@@ -183,7 +183,6 @@ class Filter (QWidget):
         scale= zoomLevel/self.zoomLevel
         # logger.info ("scaling", scale)
         self.view.scale (scale, scale)
-        self.view.centerOn (self.item)
 
         self.zoomLevel= zoomLevel
 
@@ -230,6 +229,7 @@ class Filter (QWidget):
             position= self.view_position ()
             logger.info ("original position: %f x %f", position.x(), position.y())
             self.original_position= position
+            self.view.centerOn (self.item)
 
         self.fname.setText (self.file)
         label= self.label_map[self.image_actions[self.file]]
