@@ -76,6 +76,8 @@ class Filter (QWidget):
         self.view.setFrameShadow (QFrame.Plain)
         self.view.setFrameStyle (QFrame.NoFrame)
         self.view.setDragMode (QGraphicsView.ScrollHandDrag)
+        self.view.setHorizontalScrollBarPolicy (Qt.ScrollBarAlwaysOff)
+        self.view.setVerticalScrollBarPolicy   (Qt.ScrollBarAlwaysOff)
 
         brush = QBrush(QColor(0, 0, 0))
         brush.setStyle(Qt.SolidPattern)
