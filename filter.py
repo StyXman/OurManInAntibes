@@ -75,6 +75,7 @@ class Filter (QWidget):
         self.view= QGraphicsView (self.scene, parent)
         self.view.setFrameShadow (QFrame.Plain)
         self.view.setFrameStyle (QFrame.NoFrame)
+        self.view.setDragMode (QGraphicsView.ScrollHandDrag)
 
         brush = QBrush(QColor(0, 0, 0))
         brush.setStyle(Qt.SolidPattern)
