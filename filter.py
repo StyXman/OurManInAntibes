@@ -418,6 +418,9 @@ class Filter (QWidget):
         self.dir_dialog.setDirectory (self.dst)
         if self.dir_dialog.exec ():
             dst_dir= self.dir_dialog.selectedFiles()[0]
+            if src in self.new_files:
+                src= rename_picture (src)
+
             dst= os.path.join (dst_dir, os.path.basename (src))
 
             logger.info ("%s -> %s" % (src, dst))
