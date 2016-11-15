@@ -91,7 +91,7 @@ def is_free (src, dst):
     return free
 
 
-def rename_picture (src, opts):
+def rename_picture (src, dry_run=False):
     date= read_image_date (src)
 
     if date is None:
@@ -148,7 +148,7 @@ def rename_picture (src, opts):
         if dst!=src:
             try:
                 print ("%s -> %s" % (src, dst))
-                if not opts.dry_run:
+                if not dry_run:
                     os.rename (src, dst)
             except OSError as e:
                 print (e, src)
@@ -158,10 +158,12 @@ def rename_picture (src, opts):
         # now the date based link uses the same dst_name for consistency
         try:
             print ("%s => %s" % (dst_by_date, dst))
-            if not opts.dry_run:
+            if not dry_run:
                 os.link (dst, dst_by_date)
         except OSError as e:
             print (e, dst)
+        else:
+            return dst
 
     else:
         print ("can't find file's date, skipping...")
@@ -181,7 +183,7 @@ if __name__=='__main__':
             print ("%s: File not found" % src)
         else:
             if stat.S_ISREG (s.st_mode):
-                rename_picture (src, opts)
+                rename_picture (src, opts.dry_run)
             else:
                 # BUG: it could be something else..
                 for dirpath, dirnames, filenames in os.walk (src):
@@ -189,4 +191,4 @@ if __name__=='__main__':
                     for filename in sorted (filenames):
                         f= os.path.join (dirpath, filename)
 
-                        rename_picture (f, opts)
+                        rename_picture (f, opts.dry_run)
