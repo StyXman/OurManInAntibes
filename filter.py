@@ -79,7 +79,7 @@ class Filter (QWidget):
         self.view.setHorizontalScrollBarPolicy (Qt.ScrollBarAlwaysOff)
         self.view.setVerticalScrollBarPolicy   (Qt.ScrollBarAlwaysOff)
 
-        brush = QBrush(QColor(0, 0, 0))
+        brush = QBrush(QColor(20, 20, 20))
         brush.setStyle(Qt.SolidPattern)
         self.view.setBackgroundBrush(brush)
 
