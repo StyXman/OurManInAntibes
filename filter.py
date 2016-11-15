@@ -53,7 +53,7 @@ class Filter (QWidget):
         self.new_files = new_files
 
         self.src= config['Directories']['mid']
-        self.dst= None
+        self.dst= os.getcwd ()
         self.scan (self.src)
         self.index= 0
         self.file= None
