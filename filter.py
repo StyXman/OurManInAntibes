@@ -238,8 +238,11 @@ class Filter (QWidget):
 
     def save_position (self):
         position= self.view_position ()
-        logger.info ("saving position: %f x %f", position.x(), position.y())
-        if position!=self.original_position:
+        if (   self.original_position is None
+            or position.x()!=self.original_position.x()
+            or position.y()!=self.original_position.y()):
+
+            logger.info ("saving position: %f x %f", position.x(), position.y())
             # this way (I hope) I only remember those positions which changed
             self.image_positions[self.index]= position
 
