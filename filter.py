@@ -116,6 +116,7 @@ class Filter (QWidget):
                           (Qt.Key_C, self.crop),
                           (Qt.Key_D, self.delete),
                           (Qt.Key_U, self.untag),
+                          (Qt.Key_X, self.expunge),
                           (Qt.Key_Return, self.apply),
 
                           (Qt.CTRL+Qt.Key_O, self.new_dst),
@@ -386,6 +387,19 @@ class Filter (QWidget):
 
         if hugin:
             os.system ('hugin')
+
+        self.reset ()
+
+
+    def expunge (self, *args):
+        for src, action in self.image_actions.items ():
+            try:
+                if action=='D':
+                    # Delete -> /dev/null
+                    os.unlink (src)
+                    logger.info ("%s deleted" % (src, ))
+            except FileNotFoundError as e:
+                logger.info (e)
 
         self.reset ()
 
