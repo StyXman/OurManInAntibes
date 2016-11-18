@@ -342,9 +342,9 @@ class Filter (QWidget):
 
     def apply (self, *args):
         hugin= False
-        gwenview= False
 
-        if self.dst is None:
+        if len ([ action for action in self.image_actions.values ()
+                         if action in ('K', 'T')])>0:
             self.new_dst ()
 
         for src, action in sorted (self.image_actions.items (),
