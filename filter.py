@@ -331,7 +331,8 @@ class Filter (QWidget):
         dst_p= src_p.scaled (4500, 3000, Qt.KeepAspectRatio,
                             Qt.SmoothTransformation)
 
-        dst_p.save (dst)
+        dst_p.save (src)
+        shutil.move (src, dst)
 
         # copy all the metadata
         dst_meta= GExiv2.Metadata (dst)
@@ -364,7 +365,6 @@ class Filter (QWidget):
                 elif action=='T':
                     # Tag -> /gallery/foo, resized
                     self.resize (src, dst)
-                    os.unlink (src)
 
                 elif action=='S':
                     # Stitch -> 02-new/stitch
@@ -445,9 +445,7 @@ class Filter (QWidget):
             dst= os.path.join (dst_dir, os.path.basename (src))
 
             logger.info ("%s -> %s" % (src, dst))
-            # shutil.move (src, dst)
             self.resize (src, dst)
-            os.unlink (src)
 
             self.next_image ()
 
