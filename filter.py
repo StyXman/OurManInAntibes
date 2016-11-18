@@ -325,6 +325,21 @@ class Filter (QWidget):
         self.tag_view.setText ('')
 
 
+    def resize (self, src, dst):
+        src_meta= GExiv2.Metadata (src)
+        src_p= QPixmap (src)
+        dst_p= src_p.scaled (4500, 3000, Qt.KeepAspectRatio,
+                            Qt.SmoothTransformation)
+
+        dst_p.save (dst)
+
+        # copy all the metadata
+        dst_meta= GExiv2.Metadata (dst)
+        for tag in src_meta.get_tags ():
+            dst_meta[tag]= src_meta[tag]
+        dst_meta.save_file ()
+
+
     def apply (self, *args):
         hugin= False
         gwenview= False
