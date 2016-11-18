@@ -341,26 +341,14 @@ class Filter (QWidget):
                     src= rename_picture (src)
 
                 if   action=='K':
-                    # Keep -> /gallery/foo, resized
+                    # Keep -> /gallery/foo, as-is
                     logger.info ("%s -> %s" % (src, dst))
                     shutil.move (src, dst)
 
                 elif action=='T':
-                    # Tag -> /gallery/foo, as-is
-                    src_meta= GExiv2.Metadata (src)
-                    src_p= QPixmap (src)
-                    dst_p= src_p.scaled (4500, 3000, Qt.KeepAspectRatio,
-                                        Qt.SmoothTransformation)
-
-                    dst_p.save (dst)
-
-                    # copy all the metadata
-                    dst_meta= GExiv2.Metadata (dst)
-                    for tag in src_meta.get_tags ():
-                        dst_meta[tag]= src_meta[tag]
-                    dst_meta.save_file ()
-
-                    # os.unlink (src)
+                    # Tag -> /gallery/foo, resized
+                    self.resize (src, dst)
+                    os.unlink (src)
 
                 elif action=='S':
                     # Stitch -> 02-new/stitch
@@ -427,7 +415,9 @@ class Filter (QWidget):
             dst= os.path.join (dst_dir, os.path.basename (src))
 
             logger.info ("%s -> %s" % (src, dst))
-            shutil.move (src, dst)
+            # shutil.move (src, dst)
+            self.resize (src, dst)
+            os.unlink (src)
 
             self.next_image ()
 
