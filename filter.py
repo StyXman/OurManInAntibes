@@ -424,6 +424,7 @@ class Filter (QWidget):
             self.src= new_root
 
         self.image_actions.clear ()
+        self.files= []
         self.scan (self.src)
 
 
