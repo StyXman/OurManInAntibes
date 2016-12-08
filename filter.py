@@ -253,18 +253,18 @@ class Filter (QWidget):
         # we might have rotated the view, but the scene still has the image
         # in its original size, so we use that as bounding rect
         boundingRect= QRectF (self.item.pixmap ().rect ())
-        logger.info (boundingRect)
+        logger.debug (boundingRect)
         self.scene.setSceneRect (boundingRect)
 
         if self.index in self.image_positions:
             self.original_position= None
             position= self.image_positions[self.index]
-            logger.info ("previously moved, back to that point: %f x %f", position.x(), position.y())
+            logger.debug ("previously moved, back to that point: %f x %f", position.x(), position.y())
             self.view.centerOn (position)
         else:
             # TODO: 'undo' the move
             position= self.view_position ()
-            logger.info ("original position: %f x %f", position.x(), position.y())
+            logger.debug ("original position: %f x %f", position.x(), position.y())
             self.original_position= position
             self.view.centerOn (self.item)
 
@@ -295,7 +295,7 @@ class Filter (QWidget):
             or position.x()!=self.original_position.x()
             or position.y()!=self.original_position.y()):
 
-            logger.info ("saving position: %f x %f", position.x(), position.y())
+            logger.debug ("saving position: %f x %f", position.x(), position.y())
             # this way (I hope) I only remember those positions which changed
             self.image_positions[self.index]= position
 
