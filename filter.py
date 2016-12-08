@@ -276,30 +276,17 @@ class Filter (QWidget):
         label= self.label_map[self.image_actions[self.file]]
         self.tag_view.setText (label)
 
-
-        # datetime.datetime(2016, 12, 2, 17, 50, 41)
         self.date.setText(self.metadata.get_date_time().isoformat())
+        self.fnumber.setText(str(self.metadata.get_fnumber()))
+        self.focal_length.setText(str(self.metadata.get_focal_length()))
+        self.iso_speed.setText(str(self.metadata.get_iso_speed()))
 
-        # Fraction(1, 160)
         f = self.metadata.get_exposure_time()
-        print(f)
         if f.denominator == 1:
             s= '%ds' % f.numerator
         else:
             s= '%d/%ds' % (f.numerator, f.denominator)
-
         self.exposure_time.setText(s)
-
-        # 5.6
-        self.fnumber.setText(str(self.metadata.get_fnumber()))
-
-        # 140.0
-        self.focal_length.setText(str(self.metadata.get_focal_length()))
-
-        # 100
-        self.iso_speed.setText(str(self.metadata.get_iso_speed()))
-
-
 
 
     def save_position (self):
@@ -391,7 +378,7 @@ class Filter (QWidget):
         src_meta= GExiv2.Metadata (src)
         src_p= QPixmap (src)
         dst_p= src_p.scaled (4500, 3000, Qt.KeepAspectRatio,
-                            Qt.SmoothTransformation)
+                             Qt.SmoothTransformation)
 
         dst_p.save (src)
         shutil.move (src, dst)
