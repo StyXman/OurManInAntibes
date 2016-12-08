@@ -485,7 +485,7 @@ class Filter (QWidget):
 
 
     def save (self, *args):
-        src= self.files[self.index]
+        src= self.file
         self.dir_dialog.setDirectory (self.dst)
         if self.dir_dialog.exec ():
             dst_dir= self.dir_dialog.selectedFiles()[0]
