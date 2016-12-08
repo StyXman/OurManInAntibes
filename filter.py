@@ -169,7 +169,7 @@ class Filter (QWidget):
                     self.files.append (os.path.join (r, name))
 
 
-    def rotate (self):
+    def rotate_view (self):
         origImgSize= self.img.size ()
         # Qt only handles orientation properly from v5.5
         try:
@@ -245,7 +245,7 @@ class Filter (QWidget):
         self.metadata= GExiv2.Metadata (self.file)
 
         self.img= QPixmap (self.file)
-        self.imgSize= self.rotate ()
+        self.imgSize= self.rotate_view ()
 
         self.item.setPixmap (self.img)
         if self.zoomLevel!=1.0:
