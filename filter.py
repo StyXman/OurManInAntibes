@@ -31,13 +31,13 @@ logger= logging.getLogger ("omia")
 # TODO:
 # config file (done partially)
 # properly handle reload/other dirs (compare)
-#   compare by just navigating through selected images
+# compare by just navigating through selected images
 # save w/ resize
 # rotate
 
 
 class Filter (QWidget):
-    label_map= { 'K': 'Keep', 'T': 'Tag', 'S': 'Stitch', 'M': 'Compare',
+    label_map= { 'K': 'Keep', 'T': 'Take', 'S': 'Stitch', 'M': 'Compare',
                  'C': 'Crop', 'D': 'Delete', None: '' }
 
     def __init__ (self, parent, config, new_files):
