@@ -241,6 +241,7 @@ class Filter (QWidget):
 
 
     def show_image (self):
+        logger.info (self.file)
         self.metadata= GExiv2.Metadata (self.file)
 
         self.img= QPixmap (self.file)
