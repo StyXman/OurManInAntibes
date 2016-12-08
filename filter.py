@@ -13,7 +13,7 @@ from configparser import ConfigParser
 from PyQt4.QtGui import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
 from PyQt4.QtGui import QPixmap, QGraphicsPixmapItem, QAction, QKeySequence
 from PyQt4.QtGui import QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy
-from PyQt4.QtGui import QFrame, QBrush, QColor, QWidget, QFileDialog
+from PyQt4.QtGui import QFrame, QBrush, QColor, QWidget, QFileDialog, QSplitter
 from PyQt4.QtCore import QTimer, QSize, Qt, QRectF, QMargins, QPoint
 
 import gi
@@ -67,6 +67,29 @@ class Filter (QWidget):
 
 
     def buildUI(self, parent):
+        # left labels
+        self.splitter = QSplitter(self)
+        self.splitter.setContentsMargins (QMargins (0, 0, 0, 0))
+        self.splitter.setOrientation(Qt.Horizontal)
+        self.widget = QWidget(self.splitter)
+        self.label_layout = QVBoxLayout(self.widget)
+
+        for count, name in enumerate([ 'exposure_time', 'fnumber', 'iso_speed',
+                                    'focal_length', 'date', ]):
+            key_label = QLabel(name.replace('_', ' ').title(), self.widget)
+            # setattr(self, "key_label_%02d" % count, key_label)
+            self.label_layout.addWidget(key_label)
+
+            value_label = QLabel(self.widget)
+            value_label.setAlignment(Qt.AlignRight)
+            setattr(self, name, value_label)
+            self.label_layout.addWidget(value_label)
+
+        # TODO
+        s = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.label_layout.addItem(s)
+
+        # main view
         self.scene= QGraphicsScene ()
 
         self.item= QGraphicsPixmapItem ()
@@ -85,19 +108,29 @@ class Filter (QWidget):
 
         self.view.show()
 
+        # "status bar"
         self.fname= QLabel (self)
         spacer= QSpacerItem (40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.tag_view= QLabel (self)
 
-        h= QHBoxLayout ()
-        h.addWidget (self.fname)
-        h.addItem (spacer)
-        h.addWidget (self.tag_view)
+        status_bar= QHBoxLayout ()
+        status_bar.addWidget (self.fname)
+        status_bar.addItem (spacer)
+        status_bar.addWidget (self.tag_view)
 
-        v= QVBoxLayout (self)
+        w = QWidget(self.splitter)
+
+        v= QVBoxLayout (w)
         v.setContentsMargins (QMargins (0, 0, 0, 0))
         v.addWidget (self.view)
-        v.addLayout (h)
+        v.addLayout (status_bar)
+
+        # TODO
+        self.splitter.setSizes([10, 90])
+
+        h = QHBoxLayout(self)
+        h.setContentsMargins (QMargins (0, 0, 0, 0))
+        h.addWidget(self.splitter)
 
         # now... ACTION!(s)
         for key, slot in ((Qt.Key_Home, self.first_image),
@@ -235,9 +268,38 @@ class Filter (QWidget):
             self.original_position= position
             self.view.centerOn (self.item)
 
+        self.update_view()
+
+
+    def update_view(self):
         self.fname.setText (self.file)
         label= self.label_map[self.image_actions[self.file]]
         self.tag_view.setText (label)
+
+
+        # datetime.datetime(2016, 12, 2, 17, 50, 41)
+        self.date.setText(self.metadata.get_date_time().isoformat())
+
+        # Fraction(1, 160)
+        f = self.metadata.get_exposure_time()
+        print(f)
+        if f.denominator == 1:
+            s= '%ds' % f.numerator
+        else:
+            s= '%d/%ds' % (f.numerator, f.denominator)
+
+        self.exposure_time.setText(s)
+
+        # 5.6
+        self.fnumber.setText(str(self.metadata.get_fnumber()))
+
+        # 140.0
+        self.focal_length.setText(str(self.metadata.get_focal_length()))
+
+        # 100
+        self.iso_speed.setText(str(self.metadata.get_iso_speed()))
+
+
 
 
     def save_position (self):
