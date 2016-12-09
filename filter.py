@@ -35,6 +35,57 @@ logger= logging.getLogger ("omia")
 # save w/ resize
 # rotate
 
+class Image:
+    # see http://www.daveperrett.com/images/articles/2012-07-28-exif-orientation-handling-is-a-ghetto/EXIF_Orientations.jpg
+    # rotations as read from the metadata are strings
+    rotation_to_degrees = {
+        '1': 0,
+        '8': 90,
+        '3': 180,
+        '6': 270
+    }
+
+    def __init__(self, path):
+        self.path = path
+        self.pixmap = None
+        self.metadata = None
+        self.size = None
+        self.rotation = None
+        self.zoom = None
+        self.position = None
+
+
+    def read(self):
+        if self.pixmap is None:
+            self.pixmap = QPixmap(self.path)
+            self.metadata = GExiv2.Metadata(self.path)
+
+            # the view will need three parameters:
+            # rotation
+            # size
+            # zoom
+            # the first is needed to properly orient the view over the scene
+            # the other two are needed for zoom, mostly
+            # but the rotation defines the images size, so they're linked
+            self.size = self.pixmap.size()
+
+            try:
+                # try directly to get the tag, because sometimes get_tags() returns
+                # tags that don't actually are in the file
+
+                # this implicitly loads the metadata
+                rot = self.metadata['Exif.Image.Orientation']
+            except KeyError:
+                # guess :-/
+                logger.info("rotation 'guessed'")
+                rot = '1'
+
+            self.rotation = self.rotation_to_degrees[rot]
+            if self.rotation in (90, 270):
+                self.size = QSize (self.size.height (), self.size.width ())
+
+            self.zoom
+
 
 class Filter (QWidget):
     label_map= { 'K': 'Keep', 'T': 'Take', 'S': 'Stitch', 'M': 'Compare',
@@ -43,18 +94,14 @@ class Filter (QWidget):
     def __init__ (self, parent, config, new_files):
         QWidget.__init__ (self, parent)
         self.zoomLevel= 1.0
-        self.rotation= 0
 
-        self.img= None
-        self.metadata= None
-
-        self.files= []
+        self.images = []
         self.src= config['Directories']['mid']
         self.dst= os.getcwd ()
         self.scan (self.src)
         self.new_files = new_files
         self.index= 0
-        self.file= None
+        self.image= None
 
         self.image_actions= defaultdict (lambda: None)
         self.image_positions= {}
@@ -166,50 +213,25 @@ class Filter (QWidget):
             for name in sorted(files):
                 if name[-4:].lower () in ('.jpg', '.png'):
                     # logger.info ('found %s' % name)
-                    self.files.append (os.path.join (r, name))
+                    self.images.append(Image(os.path.join(r, name)))
 
 
     def rotate_view (self):
-        origImgSize= self.img.size ()
-        # Qt only handles orientation properly from v5.5
-        try:
-            # try directly to get the tag, because sometimes get_tags() returns
-            # tags that don't actually are in the file
-            rot= self.metadata['Exif.Image.Orientation']
-        except KeyError:
-            # guess :-/
-            logger.info ("rotation 'guessed'")
-            rot= '1'
-
-        # see http://www.daveperrett.com/images/articles/2012-07-28-exif-orientation-handling-is-a-ghetto/EXIF_Orientations.jpg
         # we have to 'undo' the rotations, so the numbers are negative
-        if rot=='1':
-            rotate= 0
-            imgSize= origImgSize
-        if rot=='8':
-            rotate= -90
-            imgSize= QSize (origImgSize.height (), origImgSize.width ())
-        if rot=='3':
-            rotate= -180
-            imgSize= origImgSize
-        if rot=='6':
-            rotate= -270
-            imgSize= QSize (origImgSize.height (), origImgSize.width ())
+        rotate = -self.image.rotation
 
         # undo the last rotation and apply the new one
         self.view.rotate (-self.rotation+rotate)
         self.rotation= rotate
-        # logger.info (rot, rotate, self.rotation)
-
-        return imgSize
+        logger.debug(rot, rotate, self.rotation)
 
 
-    def zoom_to_fit (self):
-        winSize= self.view.size ()
-        # logger.info (imgSize, winSize)
+    def zoom_to_fit(self):
+        winSize = self.view.size()
+        logger.debug(self.image.size, winSize)
 
-        hZoom= winSize.width  ()/self.imgSize.width  ()
-        vZoom= winSize.height ()/self.imgSize.height ()
+        hZoom = winSize.width()/self.image.size.width()
+        vZoom = winSize.height()/self.image.size.height()
         zoomLevel= min (hZoom, vZoom)
 
         self.zoom (zoomLevel)
@@ -225,12 +247,13 @@ class Filter (QWidget):
 
 
     def move_index(self, to=None, how_much=0):
-        self.save_position ()
+        self.save_position()
         if to is not None:
-            self.index= to
-        self.index+= how_much
-        self.index%= len (self.files)
-        self.file= self.files[self.index]
+            self.index = to
+        self.index += how_much
+        self.index %= len(self.images)
+        self.image = self.images[self.index]
+        self.image.read()
 
 
     def view_position (self):
@@ -241,15 +264,11 @@ class Filter (QWidget):
 
 
     def show_image (self):
-        logger.info (self.file)
-        self.metadata= GExiv2.Metadata (self.file)
+        logger.info (self.image.path)
 
-        self.img= QPixmap (self.file)
-        self.imgSize= self.rotate_view ()
-
-        self.item.setPixmap (self.img)
-        if self.zoomLevel!=1.0:
-            self.zoom_to_fit ()
+        self.item.setPixmap(self.image.pixmap)
+        if self.zoomLevel != 1.0:
+            self.zoom_to_fit()
 
         # we might have rotated the view, but the scene still has the image
         # in its original size, so we use that as bounding rect
@@ -273,16 +292,17 @@ class Filter (QWidget):
 
 
     def update_view(self):
-        self.fname.setText (self.file)
-        label= self.label_map[self.image_actions[self.file]]
+        self.fname.setText (self.image.path)
+        label= self.label_map[self.image_actions[self.image]]
         self.tag_view.setText (label)
 
-        self.date.setText(self.metadata.get_date_time().isoformat())
-        self.fnumber.setText(str(self.metadata.get_fnumber()))
-        self.focal_length.setText(str(self.metadata.get_focal_length()))
-        self.iso_speed.setText(str(self.metadata.get_iso_speed()))
+        meta = self.image.metadata
+        self.date.setText(meta.get_date_time().isoformat())
+        self.fnumber.setText(str(meta.get_fnumber()))
+        self.focal_length.setText(str(meta.get_focal_length()))
+        self.iso_speed.setText(str(meta.get_iso_speed()))
 
-        f = self.metadata.get_exposure_time()
+        f = meta.get_exposure_time()
         if f.denominator == 1:
             s= '%ds' % f.numerator
         else:
@@ -323,7 +343,7 @@ class Filter (QWidget):
         self.show_image ()
 
     def last_image (self, *args):
-        self.move_index (to=len (self.files)-1)
+        self.move_index (to=len (self.images)-1)
         self.show_image ()
 
 
@@ -340,36 +360,36 @@ class Filter (QWidget):
     # image actions
     # Keep -> /gallery/foo, resized
     def keep (self, *args):
-        self.image_actions[self.file]= 'K'
+        self.image_actions[self.image]= 'K'
         self.next_image ()
 
     # Tag -> /gallery/foo, as-is
     def tag (self, *args):
-        self.image_actions[self.file]= 'T'
+        self.image_actions[self.image]= 'T'
         self.next_image ()
 
     # Stitch -> 02-new/stitch
     def stitch (self, *args):
-        self.image_actions[self.file]= 'S'
+        self.image_actions[self.image]= 'S'
         self.next_image ()
 
     # coMpare -> 03-cur
     def compare (self, *args):
-        self.image_actions[self.file]= 'M'
+        self.image_actions[self.image]= 'M'
         self.next_image ()
 
     # Crop -> launch gwenview
     def crop (self, *args):
-        self.image_actions[self.file]= 'C'
+        self.image_actions[self.image]= 'C'
         self.next_image ()
 
     # Delete -> /dev/null
     def delete (self, *args):
-        self.image_actions[self.file]= 'D'
+        self.image_actions[self.image]= 'D'
         self.next_image ()
 
     def untag (self, *args):
-        del self.image_actions[self.file]
+        del self.image_actions[self.image]
         # don't move, most probably I'm reconsidering what to do
         # but change the label
         self.tag_view.setText ('')
@@ -474,7 +494,7 @@ class Filter (QWidget):
             self.src= new_root
 
         self.image_actions.clear ()
-        self.files= []
+        self.images= []
         self.scan (self.src)
 
 
@@ -485,7 +505,7 @@ class Filter (QWidget):
 
 
     def save (self, *args):
-        src= self.file
+        src= self.image
         self.dir_dialog.setDirectory (self.dst)
         if self.dir_dialog.exec ():
             dst_dir= self.dir_dialog.selectedFiles()[0]
