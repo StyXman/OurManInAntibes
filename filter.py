@@ -21,7 +21,7 @@ gi.require_version('GExiv2', '0.10')
 from gi.repository import GExiv2, GLib
 
 import workflow
-from rename_pictures import rename_picture
+from rename_pictures import rename_file
 
 import logging
 log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
@@ -425,7 +425,7 @@ class Filter (QWidget):
             try:
                 if src in self.new_files and action not in ('C', 'D'):
                     # rename
-                    src= rename_picture (src)
+                    src= rename_file (src)
 
                 if   action=='K':
                     # Keep -> /gallery/foo, as-is
@@ -510,7 +510,7 @@ class Filter (QWidget):
         if self.dir_dialog.exec ():
             dst_dir= self.dir_dialog.selectedFiles()[0]
             if src in self.new_files:
-                src= rename_picture (src)
+                src= rename_file (src)
 
             dst= os.path.join (dst_dir, os.path.basename (src))
 
