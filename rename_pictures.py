@@ -85,13 +85,13 @@ def is_free (src, dst):
         else:
             # it's the same file, so let's get out of here
             # technically it's not free, but this ends the outer loop
-            # (see rename_picture())
+            # (see rename_file())
             free= True
 
     return free
 
 
-def rename_picture (src, dry_run=False):
+def rename_file (src, dry_run=False):
     date= read_image_date (src)
 
     if date is None:
@@ -183,7 +183,7 @@ if __name__=='__main__':
             print ("%s: File not found" % src)
         else:
             if stat.S_ISREG (s.st_mode):
-                rename_picture (src, opts.dry_run)
+                rename_file (src, opts.dry_run)
             else:
                 # BUG: it could be something else..
                 for dirpath, dirnames, filenames in os.walk (src):
@@ -191,4 +191,4 @@ if __name__=='__main__':
                     for filename in sorted (filenames):
                         f= os.path.join (dirpath, filename)
 
-                        rename_picture (f, opts.dry_run)
+                        rename_file (f, opts.dry_run)
