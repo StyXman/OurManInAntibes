@@ -93,7 +93,8 @@ class Filter (QWidget):
 
     def __init__ (self, parent, config, new_files):
         QWidget.__init__ (self, parent)
-        self.zoomLevel= 1.0
+        self.zoomLevel = 1.0
+        self.rotation = 0
 
         self.images = []
         self.src= config['Directories']['mid']
@@ -223,7 +224,7 @@ class Filter (QWidget):
         # undo the last rotation and apply the new one
         self.view.rotate (-self.rotation+rotate)
         self.rotation= rotate
-        logger.debug(rot, rotate, self.rotation)
+        logger.debug(rotate, self.rotation)
 
 
     def zoom_to_fit(self):
@@ -266,6 +267,7 @@ class Filter (QWidget):
     def show_image (self):
         logger.info (self.image.path)
 
+        self.rotate_view()
         self.item.setPixmap(self.image.pixmap)
         if self.zoomLevel != 1.0:
             self.zoom_to_fit()
