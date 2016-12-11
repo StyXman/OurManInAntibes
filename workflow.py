@@ -3,7 +3,7 @@
 import os
 import os.path
 import shutil
-from rename_pictures import rename_picture
+from rename_pictures import rename_file
 
 import logging
 log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
@@ -40,7 +40,7 @@ def rename():
 
     for root, dirs, files in os.walk('/home/mdione/Pictures/incoming/01-tmp'):
         for file in sorted(files):
-            rename_picture(os.path.join(root, file))
+            rename_file(os.path.join(root, file))
 
 
 def main ():
