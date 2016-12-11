@@ -418,8 +418,9 @@ class Filter (QWidget):
                          if action in ('K', 'T')])>0:
             self.new_dst ()
 
-        for src, action in sorted (self.image_actions.items (),
-                                   key=lambda s: s[0]):  # sort by fname
+        for img, action in sorted (self.image_actions.items (),
+                                   key=lambda s: s[0].path):  # sort by fname
+            src = img.path
             dst= os.path.join (self.dst, os.path.basename (src))
 
             try:
@@ -477,7 +478,8 @@ class Filter (QWidget):
 
 
     def expunge (self, *args):
-        for src, action in self.image_actions.items ():
+        for img, action in self.image_actions.items ():
+            src = img.path
             try:
                 if action=='D':
                     # Delete -> /dev/null
