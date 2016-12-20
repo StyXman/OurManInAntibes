@@ -87,6 +87,11 @@ class Image:
             self.zoom
 
 
+    def release(self):
+        """Stop referencing the QPixmap object so its memory is released."""
+        self.pixmap = None
+
+
 class Filter (QWidget):
     label_map= { 'K': 'Keep', 'T': 'Take', 'S': 'Stitch', 'M': 'Compare',
                  'C': 'Crop', 'D': 'Delete', None: '' }
@@ -253,6 +258,8 @@ class Filter (QWidget):
             self.index = to
         self.index += how_much
         self.index %= len(self.images)
+        if self.image is not None:
+            self.image.release()
         self.image = self.images[self.index]
         self.image.read()
 
