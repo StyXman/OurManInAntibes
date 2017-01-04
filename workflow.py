@@ -6,8 +6,6 @@ import shutil
 from rename_pictures import rename_file
 
 import logging
-log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
-logging.basicConfig (level=logging.INFO, format=log_format)
 logger= logging.getLogger ("workflow")
 
 # SD -> 01-tmp
@@ -48,5 +46,9 @@ def main ():
                  '/home/mdione/Pictures/incoming/01-tmp')
     rename()
 
+
 if __name__ == '__main__':
+    log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
+    logging.basicConfig (level=logging.INFO, format=log_format)
+
     main()
