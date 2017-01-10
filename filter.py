@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # (c) 2016 Marcos Dione <mdione@grulic.org.ar>
+# In ancient Greek religion, Ananke (/əˈnæŋkiː/) is a personification of
+# inevitability, compulsion and necessity.
 
 import os
 import os.path
@@ -26,7 +28,7 @@ from rename_pictures import rename_file
 import logging
 log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
 logging.basicConfig (level=logging.DEBUG, format=log_format)
-logger= logging.getLogger ("omia")
+logger= logging.getLogger ("ananke")
 
 # TODO:
 # config file (done partially)
