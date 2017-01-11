@@ -52,6 +52,8 @@ def main ():
 
 
 if __name__ == '__main__':
+    app= QApplication ([])
+
     log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
     logging.basicConfig (level=logging.INFO, format=log_format)
 
