@@ -3,6 +3,10 @@
 import os
 import os.path
 import shutil
+
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QPixmap
+
 from rename_pictures import rename_file
 
 import logging

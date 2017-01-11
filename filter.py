@@ -12,11 +12,12 @@ from collections import defaultdict
 import shutil
 from configparser import ConfigParser
 
-from PyQt4.QtGui import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
-from PyQt4.QtGui import QPixmap, QGraphicsPixmapItem, QAction, QKeySequence
-from PyQt4.QtGui import QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy
-from PyQt4.QtGui import QFrame, QBrush, QColor, QWidget, QFileDialog, QSplitter
-from PyQt4.QtCore import QTimer, QSize, Qt, QRectF, QMargins, QPoint
+from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
+from PyQt5.QtWidgets import QGraphicsPixmapItem, QAction
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy
+from PyQt5.QtWidgets import QFrame, QWidget, QFileDialog, QSplitter
+from PyQt5.QtGui import QPixmap, QKeySequence, QBrush, QColor
+from PyQt5.QtCore import QTimer, QSize, Qt, QRectF, QMargins, QPoint
 
 import gi
 gi.require_version('GExiv2', '0.10')
