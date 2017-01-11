@@ -538,12 +538,13 @@ if __name__=='__main__':
     config= ConfigParser ()
     config.read ('omia.ini')
 
+    app= QApplication (sys.argv)
+
     # import
     src= config['Directories']['src']
     mid= config['Directories']['mid']
     new= workflow.import_files (src, mid)
 
-    app= QApplication (sys.argv)
     win= QMainWindow ()
 
     view= Filter (win, config, new)
