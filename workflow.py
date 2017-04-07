@@ -12,6 +12,11 @@ from rename_pictures import rename_file
 import logging
 logger= logging.getLogger ("workflow")
 
+
+class Opts:
+    pass
+
+
 # SD -> 01-tmp
 def import_files(src_dir, dst_dir, move=True):
     imported= []
