@@ -402,10 +402,14 @@ class Filter (QWidget):
         self.next_image ()
 
     def untag (self, *args):
-        del self.image_actions[self.image]
-        # don't move, most probably I'm reconsidering what to do
-        # but change the label
-        self.tag_view.setText ('')
+        try:
+            del self.image_actions[self.image]
+            # don't move, most probably I'm reconsidering what to do
+            # but change the label
+            self.tag_view.setText ('')
+        except KeyError:
+            # tried to untag a non-tagged image
+            pass
 
 
     def resize (self, src, dst):
