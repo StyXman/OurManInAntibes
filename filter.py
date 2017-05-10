@@ -166,6 +166,7 @@ class Filter (QWidget):
 
         # "status bar"
         self.fname= QLabel (self)
+        self.fname.setTextInteractionFlags(Qt.TextSelectableByMouse)
         spacer= QSpacerItem (40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.tag_view= QLabel (self)
 
