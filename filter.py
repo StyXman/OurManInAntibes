@@ -202,7 +202,7 @@ class Filter (QWidget):
                           (Qt.Key_K, self.keep),
                           (Qt.Key_T, self.tag),
                           (Qt.Key_S, self.stitch),
-                          (Qt.Key_M, self.compare),
+                          (Qt.Key_M, self.select_for_compare),
                           (Qt.Key_C, self.crop),
                           (Qt.Key_D, self.delete),
                           (Qt.Key_U, self.untag),
@@ -387,7 +387,7 @@ class Filter (QWidget):
         self.next_image ()
 
     # coMpare -> 03-cur
-    def compare (self, *args):
+    def select_for_compare (self, *args):
         self.image_actions[self.image]= 'M'
         self.next_image ()
 
