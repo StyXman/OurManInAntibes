@@ -158,8 +158,10 @@ class Filter (QWidget):
         self.rotation = 0
 
         self.all_images = ImageList()
+        self.compare_set = ImageList()
         # start with all images
         self.images = self.all_images
+        self.comparing = False
 
         self.src= config['Directories']['mid']
         self.dst= os.getcwd ()
@@ -265,6 +267,7 @@ class Filter (QWidget):
                           (Qt.Key_X, self.expunge),
                           (Qt.Key_Return, self.apply),
 
+                          (Qt.CTRL+Qt.Key_M, self.compare),
                           (Qt.CTRL+Qt.Key_O, self.new_dst),
                           (Qt.CTRL+Qt.Key_S, self.save),):
             action= QAction (parent)
@@ -438,20 +441,46 @@ class Filter (QWidget):
         self.image_actions[self.image]= 'S'
         self.next_image ()
 
-    # coMpare -> 03-cur
+
+    # coMpare
     def select_for_compare (self, *args):
-        self.image_actions[self.image]= 'M'
+        if self.image_actions[self.image] == 'M':
+            # TODO?: undo/toggle
+            # NOTE: this can already be achieved by Untag
+            pass
+        else:
+            self.image_actions[self.image] = 'M'
+            # ugh
+            insort(self.compare_set, self.image)
+            logger.debug(self.compare_set.images)
+
         self.next_image ()
+
+
+    def compare(self):
+        logger.info('comparing')
+        self.comparing = True
+        self.images = self.compare_set
+        self.move_index()
 
     # Crop -> launch gwenview
     def crop (self, *args):
         self.image_actions[self.image]= 'C'
         self.next_image ()
 
+
     # Delete -> /dev/null
     def delete (self, *args):
         self.image_actions[self.image]= 'D'
-        self.next_image ()
+
+        if self.comparing:
+            # remove the image from the list and refresh the view
+            self.images.remove()
+            self.image = self.images.current_image
+            self.show_image()
+        else:
+            self.next_image ()
+
 
     def untag (self, *args):
         try:
@@ -481,69 +510,82 @@ class Filter (QWidget):
 
 
     def apply (self, *args):
-        hugin= False
+        if not self.comparing:
+            hugin= False
 
-        if len ([ action for action in self.image_actions.values ()
-                         if action in ('K', 'T')])>0:
-            self.new_dst ()
+            if len ([ action for action in self.image_actions.values ()
+                            if action in ('K', 'T')])>0:
+                self.new_dst ()
 
-        for img, action in sorted (self.image_actions.items (),
-                                   key=lambda s: s[0].path):  # sort by fname
-            src = img.path
-            dst= os.path.join (self.dst, os.path.basename (src))
+            for img, action in sorted (self.image_actions.items (),
+                                    key=lambda s: s[0].path):  # sort by fname
+                src = img.path
+                dst= os.path.join (self.dst, os.path.basename (src))
 
-            try:
-                if src in self.new_files and action not in ('C', 'D'):
-                    # rename
-                    src= rename_file (src)
+                try:
+                    if src in self.new_files and action not in ('C', 'D'):
+                        # rename
+                        src= rename_file (src)
 
-                if   action=='K':
-                    # Keep -> /gallery/foo, as-is
-                    logger.info ("%s -> %s" % (src, dst))
-                    shutil.move (src, dst)
+                    if   action=='K':
+                        # Keep -> /gallery/foo, as-is
+                        logger.info ("%s -> %s" % (src, dst))
+                        shutil.move (src, dst)
 
-                elif action=='T':
-                    # Tag -> /gallery/foo, resized
-                    self.resize (src, dst)
+                    elif action=='T':
+                        # Tag -> /gallery/foo, resized
+                        self.resize (src, dst)
 
-                elif action=='S':
-                    # Stitch -> 02-new/stitch
-                    dst= os.path.join ('/home/mdione/Pictures/incoming/02-new/stitch',
-                                    os.path.basename (src))
-                    logger.info ("%s -> %s" % (src, dst))
-                    shutil.move (src, dst)
-                    hugin= True
+                    elif action=='S':
+                        # Stitch -> 02-new/stitch
+                        dst= os.path.join ('/home/mdione/Pictures/incoming/02-new/stitch',
+                                        os.path.basename (src))
+                        logger.info ("%s -> %s" % (src, dst))
+                        shutil.move (src, dst)
+                        hugin= True
 
-                elif action=='M':
-                    # coMpare -> 03-cur
-                    dst= os.path.join ('/home/mdione/Pictures/incoming/03-cur',
-                                    os.path.basename (src))
-                    logger.info ("%s -> %s" % (src, dst))
-                    shutil.move (src, dst)
+                    elif action=='M':
+                        # coMpare -> 03-cur
+                        dst= os.path.join ('/home/mdione/Pictures/incoming/03-cur',
+                                        os.path.basename (src))
+                        logger.info ("%s -> %s" % (src, dst))
+                        shutil.move (src, dst)
 
-                    new_root= '/home/mdione/Pictures/incoming/03-cur'
-                    old_root= self.src
+                        new_root= '/home/mdione/Pictures/incoming/03-cur'
+                        old_root= self.src
 
-                elif action=='C':
-                    # Crop -> launch gwenview
-                    os.system ('gwenview %s' % src)
+                    elif action=='C':
+                        # Crop -> launch gwenview
+                        os.system ('gwenview %s' % src)
 
-                    # asume the file was saved under a new name
-                    # logger.info ("%s -> %s" % (src, dst))
-                    # shutil.move (src, dst)
+                        # asume the file was saved under a new name
+                        # logger.info ("%s -> %s" % (src, dst))
+                        # shutil.move (src, dst)
 
 
-                elif action=='D':
-                    # Delete -> /dev/null
-                    os.unlink (src)
-                    logger.info ("%s deleted" % (src, ))
-            except FileNotFoundError as e:
-                logger.info (e)
+                    elif action=='D':
+                        # Delete -> /dev/null
+                        os.unlink (src)
+                        logger.info ("%s deleted" % (src, ))
+                except FileNotFoundError as e:
+                    logger.info (e)
 
-        if hugin:
-            os.system ('hugin')
+            if hugin:
+                os.system ('hugin')
 
-        self.reset ()
+            self.reset ()
+        else:
+            logger.info('back to all')
+            self.comparing = False
+
+            # untag all images marked for compare
+            for image in self.compare_set:
+                # but only those still marked 'M'
+                if self.image_actions[image] == 'M':
+                    del self.image_actions[image]
+
+            self.images = self.all_images
+            self.move_index()
 
 
     def expunge (self, *args):
