@@ -11,6 +11,7 @@ import sys
 from collections import defaultdict
 import shutil
 from configparser import ConfigParser
+from bisect import insort
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
 from PyQt5.QtWidgets import QGraphicsPixmapItem, QAction
@@ -100,6 +101,53 @@ class Image:
         return self.index < other.index
 
 
+class ImageList:
+    """A list of Images with a cursor."""
+    def __init__(self):
+        self.images = []
+        self.index = 0
+        self.current_image = None
+
+
+    def move_index(self, to=None, how_much=0):
+        if to is not None:
+            self.index = to
+
+        self.index += how_much
+        self.index %= len(self.images)
+
+        if self.current_image is not None:
+            self.current_image.release()
+
+        self.current_image = self.images[self.index]
+        logger.debug((self.images, self.index))
+
+
+    def append(self, image):
+        self.images.append(image)
+        logger.debug((self.images, self.index))
+
+
+    def insert(self, index, image):
+        self.images.insert(index, image)
+
+
+    def remove(self):
+        """Remove the current image from the list."""
+        self.images.remove(self.current_image)
+        # this also handles when we remove() the last image
+        self.move_index(self.index)
+        logger.debug((self.images, self.index))
+
+
+    def __len__(self):
+        return len(self.images)
+
+
+    def __getitem__(self, index):
+        return self.images[index]
+
+
 class Filter (QWidget):
     label_map= { 'K': 'Keep', 'T': 'Take', 'S': 'Stitch', 'M': 'Compare',
                  'C': 'Crop', 'D': 'Delete', None: '' }
@@ -109,7 +157,10 @@ class Filter (QWidget):
         self.zoomLevel = 1.0
         self.rotation = 0
 
-        self.images = []
+        self.all_images = ImageList()
+        # start with all images
+        self.images = self.all_images
+
         self.src= config['Directories']['mid']
         self.dst= os.getcwd ()
         self.scan (self.src)
@@ -265,15 +316,12 @@ class Filter (QWidget):
 
 
     def move_index(self, to=None, how_much=0):
-        self.save_position()
-        if to is not None:
-            self.index = to
-        self.index += how_much
-        self.index %= len(self.images)
         if self.image is not None:
-            self.image.release()
-        self.image = self.images[self.index]
-        self.image.read()
+            self.save_position()
+
+        self.images.move_index(to, how_much)
+
+        self.image = self.images.current_image
         self.show_image()
 
 
