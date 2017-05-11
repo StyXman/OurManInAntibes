@@ -48,7 +48,8 @@ class Image:
         '6': 270
     }
 
-    def __init__(self, path):
+    def __init__(self, index, path):
+        self.index = index
         self.path = path
         self.pixmap = None
         self.metadata = None
@@ -109,7 +110,7 @@ class Filter (QWidget):
         self.dst= os.getcwd ()
         self.scan (self.src)
         self.new_files = new_files
-        self.index= 0
+
         self.image= None
 
         self.image_actions= defaultdict (lambda: None)
@@ -217,13 +218,16 @@ class Filter (QWidget):
             self.view.addAction (action)
 
 
-    def scan (self, src):
-        logger.debug ('scanning %r', src)
-        for r, dirs, files in os.walk (os.path.abspath (src)):
+    def scan(self, src):
+        index = 0
+
+        logger.debug('scanning %r', src)
+        for r, dirs, files in os.walk(os.path.abspath(src)):
             for name in sorted(files):
-                if name[-4:].lower () in ('.jpg', '.png'):
+                if name[-4:].lower() in ('.jpg', '.png'):
                     # logger.info ('found %s' % name)
-                    self.images.append(Image(os.path.join(r, name)))
+                    self.images.append(Image(index, os.path.join(r, name)))
+                    index += 1
 
 
     def rotate_view (self):
@@ -289,9 +293,9 @@ class Filter (QWidget):
         logger.debug (boundingRect)
         self.scene.setSceneRect (boundingRect)
 
-        if self.index in self.image_positions:
+        if self.image.index in self.image_positions:
             self.original_position= None
-            position= self.image_positions[self.index]
+            position= self.image_positions[self.image.index]
             logger.debug ("previously moved, back to that point: %f x %f", position.x(), position.y())
             self.view.centerOn (position)
         else:
@@ -331,7 +335,7 @@ class Filter (QWidget):
 
             logger.debug ("saving position: %f x %f", position.x(), position.y())
             # this way (I hope) I only remember those positions which changed
-            self.image_positions[self.index]= position
+            self.image_positions[self.image.index] = position
 
 
     # movements
