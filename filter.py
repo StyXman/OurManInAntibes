@@ -274,6 +274,7 @@ class Filter (QWidget):
             self.image.release()
         self.image = self.images[self.index]
         self.image.read()
+        self.show_image()
 
 
     def view_position (self):
@@ -285,6 +286,7 @@ class Filter (QWidget):
 
     def show_image (self):
         logger.info (self.image.path)
+        self.image.read()
 
         self.rotate_view()
         self.item.setPixmap(self.image.pixmap)
@@ -345,27 +347,21 @@ class Filter (QWidget):
     # movements
     def first_image (self, *args):
         self.move_index (to=0)
-        self.show_image ()
 
     def prev_ten (self, *args):
         self.move_index (how_much=-10)
-        self.show_image ()
 
     def prev_image (self, *args):
         self.move_index (how_much=-1)
-        self.show_image ()
 
     def next_image (self, *args):
         self.move_index (how_much=+1)
-        self.show_image ()
 
     def next_ten (self, *args):
         self.move_index (how_much=+10)
-        self.show_image ()
 
     def last_image (self, *args):
         self.move_index (to=len (self.images)-1)
-        self.show_image ()
 
 
     def toggle_fullsize (self, *args):
