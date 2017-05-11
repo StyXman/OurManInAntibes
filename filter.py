@@ -96,6 +96,10 @@ class Image:
         self.pixmap = None
 
 
+    def __lt__(self, other):
+        return self.index < other.index
+
+
 class Filter (QWidget):
     label_map= { 'K': 'Keep', 'T': 'Take', 'S': 'Stitch', 'M': 'Compare',
                  'C': 'Crop', 'D': 'Delete', None: '' }
