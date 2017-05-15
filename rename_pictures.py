@@ -50,10 +50,18 @@ def read_video_date (file_name):
 
     date= None
 
+    succeeded = False
     for line in output.stdout:
         if line.startswith ('TAG:creation_time='):
-            date= datetime.strptime (line.split ('=')[1], '%Y-%m-%d %H:%M:%S\n')
-            break
+            for format in ('%Y-%m-%d %H:%M:%S\n', '%Y-%m-%dT%H:%M:%S.000000Z\n'):
+                try:
+                    date= datetime.strptime (line.split ('=')[1], format)
+                    succeeded = True
+                    break
+                except ValueError:
+                    pass
+            if succeeded:
+                break
 
     return date
 
