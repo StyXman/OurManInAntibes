@@ -611,7 +611,9 @@ class Filter (QWidget):
             self.src= new_root
 
         self.image_actions.clear ()
-        self.images= []
+        self.all_images.clear()
+        self.compare_set.clear()
+        self.comparing = False
         self.scan (self.src)
 
 
