@@ -18,11 +18,12 @@ logging.basicConfig (level=logging.INFO, format=log_format)
 logger= logging.getLogger ("rename")
 
 
-def read_image_date (file_name):
-    try:
-        metadata = GExiv2.Metadata (file_name)
-    except GLib.Error:
-        return None
+def read_image_date (file_name, metadata=None):
+    if metadata is None:
+        try:
+            metadata = GExiv2.Metadata (file_name)
+        except GLib.Error:
+            return None
 
     try:
         date= metadata['Exif.Photo.DateTimeOriginal']
