@@ -140,6 +140,10 @@ class ImageList:
         logger.debug((self.images, self.index))
 
 
+    def clear(self):
+        self.images.clear()
+
+
     def __len__(self):
         return len(self.images)
 
