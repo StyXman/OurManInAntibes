@@ -588,6 +588,7 @@ class Filter (QWidget):
                 if self.image_actions[image] == 'M':
                     del self.image_actions[image]
 
+            self.compare_set.clear()
             self.images = self.all_images
             self.move_index()
 
