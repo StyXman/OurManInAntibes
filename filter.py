@@ -386,7 +386,9 @@ class Filter (QWidget):
         self.iso_speed.setText(str(meta.get_iso_speed()))
 
         f = meta.get_exposure_time()
-        if f.denominator == 1:
+        if f is None:
+            s = 'unknown'
+        elif f.denominator == 1:
             s= '%ds' % f.numerator
         else:
             s= '%d/%ds' % (f.numerator, f.denominator)
