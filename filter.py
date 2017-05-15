@@ -25,7 +25,7 @@ gi.require_version('GExiv2', '0.10')
 from gi.repository import GExiv2, GLib
 
 import workflow
-from rename_pictures import rename_file
+from rename_pictures import rename_file, read_image_date
 
 import logging
 log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
@@ -375,7 +375,12 @@ class Filter (QWidget):
         self.tag_view.setText (label)
 
         meta = self.image.metadata
-        self.date.setText(meta.get_date_time().isoformat())
+        date = read_image_date(self.image.path, meta)
+        if date is None:
+            self.date.setText('unknown')
+        else:
+            self.date.setText(date.isoformat())
+
         self.fnumber.setText(str(meta.get_fnumber()))
         self.focal_length.setText(str(meta.get_focal_length()))
         self.iso_speed.setText(str(meta.get_iso_speed()))
