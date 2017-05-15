@@ -272,7 +272,7 @@ class Filter (QWidget):
                           (Qt.Key_Return, self.apply),
 
                           (Qt.CTRL+Qt.Key_M, self.compare),
-                          (Qt.CTRL+Qt.Key_O, self.new_dst),
+                          (Qt.CTRL+Qt.Key_O, self.new_src),
                           (Qt.CTRL+Qt.Key_S, self.save),):
             action= QAction (parent)
             action.setShortcut(QKeySequence(key))
@@ -629,6 +629,13 @@ class Filter (QWidget):
         self.dir_dialog.setDirectory (self.dst)
         if self.dir_dialog.exec ():
             self.dst= self.dir_dialog.selectedFiles()[0]
+
+
+    def new_src (self, *args):
+        self.dir_dialog.setDirectory (self.src)
+        if self.dir_dialog.exec ():
+            self.src= self.dir_dialog.selectedFiles()[0]
+            self.reset()
 
 
     def save (self, *args):
