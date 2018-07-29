@@ -303,14 +303,17 @@ class Filter (QWidget):
 
 
     def zoom_to_fit(self):
-        winSize = self.view.size()
-        logger.debug(self.image.size, winSize)
+        win_size = self.view.size()
+        logger.debug(self.image.size, win_size, self.image.path)
 
-        hZoom = winSize.width()/self.image.size.width()
-        vZoom = winSize.height()/self.image.size.height()
-        zoomLevel= min (hZoom, vZoom)
+        try:
+            hZoom = win_size.width()/self.image.size.width()
+            vZoom = win_size.height()/self.image.size.height()
+            zoom_level = min(hZoom, vZoom)
+        except ZeroDivisionError:
+            zoom_level = 1
 
-        self.zoom (zoomLevel)
+        self.zoom(zoom_level)
 
 
     def zoom (self, zoomLevel):
