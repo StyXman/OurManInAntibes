@@ -158,7 +158,7 @@ class Filter (QWidget):
 
     def __init__ (self, parent, config, new_files):
         QWidget.__init__ (self, parent)
-        self.zoomLevel = 1.0
+        self.zoom_level = 1.0
         self.rotation = 0
 
         self.all_images = ImageList()
@@ -180,8 +180,11 @@ class Filter (QWidget):
 
         self.buildUI (parent)
 
-        self.dir_dialog= QFileDialog (self)
-        self.dir_dialog.setFileMode (QFileDialog.Directory)
+        self.dir_dialog = QFileDialog(self)
+        self.dir_dialog.setFileMode(QFileDialog.Directory)
+        self.dir_dialog.modal = False
+        self.dir_dialog.setOption(QFileDialog.ShowDirsOnly)
+        self.dir_dialog.setAcceptMode(QFileDialog.AcceptSave)
 
 
     def buildUI(self, parent):
@@ -298,7 +301,7 @@ class Filter (QWidget):
 
         # undo the last rotation and apply the new one
         self.view.rotate (-self.rotation+rotate)
-        self.rotation= rotate
+        self.rotation = rotate
         logger.debug(rotate, self.rotation)
 
 
@@ -316,13 +319,13 @@ class Filter (QWidget):
         self.zoom(zoom_level)
 
 
-    def zoom (self, zoomLevel):
-        # logger.info (zoomLevel)
-        scale= zoomLevel/self.zoomLevel
+    def zoom (self, zoom_level):
+        # logger.info (zoom_level)
+        scale= zoom_level/self.zoom_level
         # logger.info ("scaling", scale)
         self.view.scale (scale, scale)
 
-        self.zoomLevel= zoomLevel
+        self.zoom_level= zoom_level
 
 
     def move_index(self, to=None, how_much=0):
@@ -348,7 +351,7 @@ class Filter (QWidget):
 
         self.rotate_view()
         self.item.setPixmap(self.image.pixmap)
-        if self.zoomLevel != 1.0:
+        if self.zoom_level != 1.0:
             self.zoom_to_fit()
 
         # we might have rotated the view, but the scene still has the image
@@ -431,7 +434,7 @@ class Filter (QWidget):
 
     def toggle_fullsize (self, *args):
         # noooooooooooooooothing compares...
-        if abs (self.zoomLevel-1.0) < 0.000001:
+        if abs (self.zoom_level - 1.0) < 0.000001:
             # logger.info ('fit')
             self.zoom_to_fit ()
         else:
@@ -603,18 +606,18 @@ class Filter (QWidget):
             self.move_index()
 
 
-    def expunge (self, *args):
-        for img, action in self.image_actions.items ():
+    def expunge(self, *args):
+        for img, action in self.image_actions.items():
             src = img.path
             try:
-                if action=='D':
+                if action == 'D':
                     # Delete -> /dev/null
-                    os.unlink (src)
-                    logger.info ("%s deleted" % (src, ))
+                    os.unlink(src)
+                    logger.info("%s deleted", src)
             except FileNotFoundError as e:
-                logger.info (e)
+                logger.info(e)
 
-        self.reset ()
+        self.reset()
 
 
     def reset (self, new_root=None):
@@ -657,23 +660,23 @@ class Filter (QWidget):
             self.next_image ()
 
 
-if __name__=='__main__':
-    config= ConfigParser ()
-    config.read ('omia.ini')
+if __name__ == '__main__':
+    config =  ConfigParser()
+    config.read('ananke.ini')
 
-    app= QApplication (sys.argv)
+    app = QApplication(sys.argv)
 
     # import
-    src= config['Directories']['src']
-    mid= config['Directories']['mid']
-    new= workflow.import_files (src, mid)
+    src = config['Directories']['src']
+    mid = config['Directories']['mid']
+    new = workflow.import_files(src, mid)
 
-    win= QMainWindow ()
+    win = QMainWindow()
 
-    view= Filter (win, config, new)
-    firstImage= QTimer.singleShot (200, view.first_image)
+    view = Filter(win, config, new)
+    firstImage = QTimer.singleShot(200, view.first_image)
 
-    win.setCentralWidget (view)
-    win.showFullScreen ()
+    win.setCentralWidget(view)
+    win.showFullScreen()
 
-    app.exec_ ()
+    app.exec_()

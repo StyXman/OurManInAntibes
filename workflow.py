@@ -19,7 +19,7 @@ class Opts:
 
 # SD -> 01-tmp
 def import_files(src_dir, dst_dir, move=True):
-    imported= []
+    imported = []
 
     if move:
         op = shutil.move
@@ -34,7 +34,7 @@ def import_files(src_dir, dst_dir, move=True):
 
             logger.info("%s -> %s", src, dst)
             op(src, dst)
-            imported.append (dst)
+            imported.append(dst)
 
     return imported
 

@@ -100,21 +100,21 @@ def is_free (src, dst):
     return free
 
 
-def rename_file (src, dry_run=False):
-    date= read_image_date (src)
+def rename_file(src, dry_run=False):
+    date = read_image_date(src)
 
     if date is None:
         # try it as video:
-        date= read_video_date (src)
+        date = read_video_date(src)
 
-    if not isinstance (date, datetime):
-        print ("%s: bad date field format (%r)" % (src, date))
-        date= None
+    if not isinstance(date, datetime):
+        print("%s: bad date field format (%r)" % (src, date))
+        date = None
 
     if date is not None:
         # we do two things here
-        src_dir, src_name= os.path.split (src)
-        ext= os.path.splitext (src_name)[1].lower ()
+        src_dir, src_name = os.path.split(src)
+        ext = os.path.splitext(src_name)[1].lower()
 
         # first, we rename the file from src/DSC_XXXX.JPG to a date based name
         # like src/2016-04-30T12.59.40.jpg
@@ -123,22 +123,22 @@ def rename_file (src, dry_run=False):
         # variant (!!!; see https://xkcd.com/927/) of ISO 8601 compatible with Windows
         # .%f ignored because it's always 0
         # TODO: put in config file
-        file_name_format= "%Y-%m-%dT%H.%M.%S"
+        file_name_format = "%Y-%m-%dT%H.%M.%S"
 
-        dst_dir= src_dir
+        dst_dir = src_dir
         # does not include extension
-        dst_base_name= date.strftime (file_name_format)
+        dst_base_name = date.strftime (file_name_format)
 
         # then we also link it in the by_date dir
         # TODO: put paths in config file
-        dst_by_date_dir= date.strftime ("ByDate/%Y/%m")
+        dst_by_date_dir = date.strftime("ByDate/%Y/%m")
 
         # dst_dir is also src_dir, so we know it already exists :)
-        os.makedirs (dst_by_date_dir, exist_ok=True)
+        os.makedirs(dst_by_date_dir, exist_ok=True)
 
-        free_dst= False
-        free_dst_by_date= False
-        count= None
+        free_dst = False
+        free_dst_by_date = False
+        count = None
 
         while not free_dst and not free_dst_by_date:
             dst = build_filename (dst_dir, dst_base_name, count, ext)
@@ -146,36 +146,36 @@ def rename_file (src, dry_run=False):
                                           ext)
 
             # check dst does not exist or is the same file
-            free_dst= is_free (src, dst)
+            free_dst = is_free(src, dst)
             # now dst_by_date
-            free_dst_by_date= is_free (src, dst_by_date)
+            free_dst_by_date = is_free(src, dst_by_date)
             if count is None:
-                count= 1
+                count = 1
             else:
-                count+= 1
+                count += 1
 
-        if dst!=src:
+        if dst != src:
             try:
-                print ("%s -> %s" % (src, dst))
+                print("%s -> %s" % (src, dst))
                 if not dry_run:
-                    os.rename (src, dst)
+                    os.rename(src, dst)
             except OSError as e:
-                print (e, src)
+                print(e, src)
         else:
-            print ("%s already in good format, not renaming." % src)
+            print("%s already in good format, not renaming." % src)
 
         # now the date based link uses the same dst_name for consistency
         try:
-            print ("%s => %s" % (dst_by_date, dst))
+            print("%s => %s" % (dst_by_date, dst))
             if not dry_run:
-                os.link (dst, dst_by_date)
+                os.link(dst, dst_by_date)
         except OSError as e:
-            print (e, dst)
+            print(e, dst)
         else:
             return dst
 
     else:
-        print ("can't find file's date, skipping...")
+        print("can't find file's date, skipping...")
 
 
 if __name__=='__main__':
