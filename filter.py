@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # (c) 2016 Marcos Dione <mdione@grulic.org.ar>
-# In ancient Greek religion, Ananke (/əˈnæŋkiː/) is a personification of
+# In ancient Greek religion, Ananke (Ἀνάγκη) is a personification of
 # inevitability, compulsion and necessity.
 
 import os
@@ -191,15 +191,15 @@ class Filter(QWidget):
     def buildUI(self, parent):
         # left labels
         self.splitter = QSplitter(self)
-        self.splitter.setContentsMargins (QMargins (0, 0, 0, 0))
+        self.splitter.setContentsMargins(QMargins(0, 0, 0, 0))
         self.splitter.setOrientation(Qt.Horizontal)
+
         self.widget = QWidget(self.splitter)
         self.label_layout = QVBoxLayout(self.widget)
 
         for count, name in enumerate([ 'exposure_time', 'fnumber', 'iso_speed',
                                     'focal_length', 'date', ]):
             key_label = QLabel(name.replace('_', ' ').title(), self.widget)
-            # setattr(self, "key_label_%02d" % count, key_label)
             self.label_layout.addWidget(key_label)
 
             value_label = QLabel(self.widget)
@@ -212,17 +212,17 @@ class Filter(QWidget):
         self.label_layout.addItem(s)
 
         # main view
-        self.scene= QGraphicsScene ()
+        self.scene = QGraphicsScene()
 
-        self.item= QGraphicsPixmapItem ()
-        self.scene.addItem (self.item)
+        self.item = QGraphicsPixmapItem()
+        self.scene.addItem(self.item)
 
-        self.view= QGraphicsView (self.scene, parent)
-        self.view.setFrameShadow (QFrame.Plain)
-        self.view.setFrameStyle (QFrame.NoFrame)
-        self.view.setDragMode (QGraphicsView.ScrollHandDrag)
-        self.view.setHorizontalScrollBarPolicy (Qt.ScrollBarAlwaysOff)
-        self.view.setVerticalScrollBarPolicy   (Qt.ScrollBarAlwaysOff)
+        self.view = QGraphicsView(self.scene, parent)
+        self.view.setFrameShadow(QFrame.Plain)
+        self.view.setFrameStyle(QFrame.NoFrame)
+        self.view.setDragMode(QGraphicsView.ScrollHandDrag)
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.view.setVerticalScrollBarPolicy  (Qt.ScrollBarAlwaysOff)
 
         brush = QBrush(QColor(20, 20, 20))
         brush.setStyle(Qt.SolidPattern)
@@ -231,39 +231,39 @@ class Filter(QWidget):
         self.view.show()
 
         # "status bar"
-        self.fname= QLabel (self)
+        self.fname = QLabel(self)
         self.fname.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        spacer= QSpacerItem (40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.tag_view= QLabel (self)
+        spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.tag_view = QLabel(self)
 
-        status_bar= QHBoxLayout ()
-        status_bar.addWidget (self.fname)
-        status_bar.addItem (spacer)
-        status_bar.addWidget (self.tag_view)
+        status_bar = QHBoxLayout()
+        status_bar.addWidget(self.fname)
+        status_bar.addItem(spacer)
+        status_bar.addWidget(self.tag_view)
 
         w = QWidget(self.splitter)
 
-        v= QVBoxLayout (w)
-        v.setContentsMargins (QMargins (0, 0, 0, 0))
-        v.addWidget (self.view)
-        v.addLayout (status_bar)
+        v = QVBoxLayout(w)
+        v.setContentsMargins(QMargins(0, 0, 0, 0))
+        v.addWidget(self.view)
+        v.addLayout(status_bar)
 
         # TODO
         self.splitter.setSizes([10, 90])
 
         h = QHBoxLayout(self)
-        h.setContentsMargins (QMargins (0, 0, 0, 0))
+        h.setContentsMargins(QMargins(0, 0, 0, 0))
         h.addWidget(self.splitter)
 
         # now... ACTION!(s)
-        for key, slot in ((Qt.Key_Home, self.first_image),
-                          (Qt.Key_PageUp, self.prev_ten),
+        for key, slot in ((Qt.Key_Home,      self.first_image),
+                          (Qt.Key_PageUp,    self.prev_ten),
                           (Qt.Key_Backspace, self.prev_image),
-                          (Qt.Key_Space, self.next_image),
-                          (Qt.Key_PageDown, self.next_ten),
-                          (Qt.Key_End, self.last_image),
+                          (Qt.Key_Space,     self.next_image),
+                          (Qt.Key_PageDown,  self.next_ten),
+                          (Qt.Key_End,       self.last_image),
 
-                          (Qt.Key_F, self.toggle_fullsize),
+                          (Qt.Key_F,       self.toggle_fullsize),
 
                           (Qt.Key_K, self.keep),
                           (Qt.Key_T, self.tag),
@@ -278,10 +278,10 @@ class Filter(QWidget):
                           (Qt.CTRL+Qt.Key_M, self.compare),
                           (Qt.CTRL+Qt.Key_O, self.new_src),
                           (Qt.CTRL+Qt.Key_S, self.save),):
-            action= QAction (parent)
+            action = QAction(parent)
             action.setShortcut(QKeySequence(key))
-            action.triggered.connect (slot)
-            self.view.addAction (action)
+            action.triggered.connect(slot)
+            self.view.addAction(action)
 
 
     def scan(self, src):
@@ -296,19 +296,19 @@ class Filter(QWidget):
                     index += 1
 
 
-    def rotate_view (self):
+    def rotate_view(self):
         # we have to 'undo' the rotations, so the numbers are negative
         rotate = -self.image.rotation
 
         # undo the last rotation and apply the new one
-        self.view.rotate (-self.rotation+rotate)
+        self.view.rotate(-self.rotation+rotate)
         self.rotation = rotate
-        logger.debug(rotate, self.rotation)
+        logger.debug( (rotate, self.rotation) )
 
 
     def zoom_to_fit(self):
         win_size = self.view.size()
-        logger.debug(self.image.size, win_size, self.image.path)
+        logger.debug( (self.image.size, win_size, self.image.path) )
 
         try:
             hZoom = win_size.width() / self.image.size.width()
@@ -320,13 +320,13 @@ class Filter(QWidget):
         self.zoom(zoom_level)
 
 
-    def zoom (self, zoom_level):
-        # logger.info (zoom_level)
-        scale= zoom_level/self.zoom_level
-        # logger.info ("scaling", scale)
-        self.view.scale (scale, scale)
+    def zoom(self, zoom_level):
+        # logger.info(zoom_level)
+        scale = zoom_level/self.zoom_level
+        # logger.info("scaling", scale)
+        self.view.scale(scale, scale)
 
-        self.zoom_level= zoom_level
+        self.zoom_level = zoom_level
 
 
     def move_index(self, to=None, how_much=0):
@@ -339,10 +339,10 @@ class Filter(QWidget):
         self.show_image()
 
 
-    def view_position (self):
-        view_size= self.view.size ()
-        center= QPoint (view_size.width ()/2, view_size.height ()/2)
-        position= self.view.mapToScene (center)
+    def view_position(self):
+        view_size = self.view.size()
+        center = QPoint(view_size.width()/2, view_size.height()/2)
+        position = self.view.mapToScene(center)
         return position
 
 
@@ -377,9 +377,9 @@ class Filter(QWidget):
 
 
     def update_view(self):
-        self.fname.setText (self.image.path)
-        label= self.label_map[self.image_actions[self.image]]
-        self.tag_view.setText (label)
+        self.fname.setText(self.image.path)
+        label = self.label_map[self.image.action]
+        self.tag_view.setText(label)
 
         meta = self.image.metadata
         date = read_image_date(self.image.path, meta)
@@ -396,9 +396,9 @@ class Filter(QWidget):
         if f is None:
             s = 'unknown'
         elif f.denominator == 1:
-            s= '%ds' % f.numerator
+            s = '%ds' % f.numerator
         else:
-            s= '%d/%ds' % (f.numerator, f.denominator)
+            s = '%d/%ds' % (f.numerator, f.denominator)
         self.exposure_time.setText(s)
 
 
@@ -434,14 +434,14 @@ class Filter(QWidget):
         self.move_index(to=len(self.images)-1)
 
 
-    def toggle_fullsize (self, *args):
+    def toggle_fullsize(self, *args):
         # noooooooooooooooothing compares...
-        if abs (self.zoom_level - 1.0) < 0.000001:
-            # logger.info ('fit')
-            self.zoom_to_fit ()
+        if abs(self.zoom_level - 1.0) < 0.000001:
+            # logger.info('fit')
+            self.zoom_to_fit()
         else:
-            # logger.info ('orig')
-            self.zoom (1.0)
+            # logger.info('orig')
+            self.zoom(1.0)
 
 
     # image actions
@@ -500,15 +500,15 @@ class Filter(QWidget):
             self.image = self.images.current_image
             self.show_image()
         else:
-            self.next_image ()
+            self.next_image()
 
 
-    def untag (self, *args):
+    def untag(self, *args):
         try:
             del self.image_actions[self.image]
             # don't move, most probably I'm reconsidering what to do
             # but change the label
-            self.tag_view.setText ('')
+            self.tag_view.setText('')
         except KeyError:
             # tried to untag a non-tagged image
             pass
@@ -531,7 +531,7 @@ class Filter(QWidget):
         dst_meta.save_file()
 
 
-    def apply (self, *args):
+    def apply(self, *args):
         if not self.comparing:
             hugin = False
 
@@ -547,55 +547,55 @@ class Filter(QWidget):
                 try:
                     if src in self.new_files and action not in ('C', 'D'):
                         # rename
-                        src= rename_file (src)
+                        src = rename_file(src)
 
                     if   action == 'K':
                         # Keep -> /gallery/foo, as-is
-                        logger.info ("%s -> %s" % (src, dst))
-                        shutil.move (src, dst)
+                        logger.info("%s -> %s", src, dst)
+                        shutil.move(src, dst)
 
-                    elif action=='T':
+                    elif action == 'T':
                         # Tag -> /gallery/foo, resized
-                        self.resize (src, dst)
+                        self.resize(src, dst)
 
-                    elif action=='S':
+                    elif action == 'S':
                         # Stitch -> 02-new/stitch
-                        dst= os.path.join ('/home/mdione/Pictures/incoming/02-new/stitch',
-                                        os.path.basename (src))
-                        logger.info ("%s -> %s" % (src, dst))
-                        shutil.move (src, dst)
-                        hugin= True
+                        dst = os.path.join('/home/mdione/Pictures/incoming/02-new/stitch',
+                                           os.path.basename(src))
+                        logger.info("%s -> %s", src, dst)
+                        shutil.move(src, dst)
+                        hugin = True
 
-                    elif action=='M':
+                    elif action == 'M':
                         # coMpare -> 03-cur
-                        dst= os.path.join ('/home/mdione/Pictures/incoming/03-cur',
-                                        os.path.basename (src))
-                        logger.info ("%s -> %s" % (src, dst))
+                        dst = os.path.join('/home/mdione/Pictures/incoming/03-cur',
+                                           os.path.basename(src))
+                        logger.info("%s -> %s", src, dst)
                         shutil.move (src, dst)
 
-                        new_root= '/home/mdione/Pictures/incoming/03-cur'
-                        old_root= self.src
+                        new_root = '/home/mdione/Pictures/incoming/03-cur'
+                        old_root = self.src
 
-                    elif action=='C':
+                    elif action == 'C':
                         # Crop -> launch gwenview
-                        os.system ('gwenview %s' % src)
+                        os.system('gwenview %s', src)
 
                         # asume the file was saved under a new name
-                        # logger.info ("%s -> %s" % (src, dst))
-                        # shutil.move (src, dst)
+                        # logger.info("%s -> %s", src, dst)
+                        # shutil.move(src, dst)
 
 
                     elif action == 'D':
                         # Delete -> /dev/null
                         os.unlink(src)
-                        logger.info("%s deleted" % (src, ))
+                        logger.info("%s deleted", src)
                 except FileNotFoundError as e:
                     logger.info(e)
 
             if hugin:
-                os.system ('hugin')
+                os.system('hugin')
 
-            self.reset ()
+            self.reset()
         else:
             logger.info('back to all')
             self.comparing = False
@@ -636,33 +636,33 @@ class Filter(QWidget):
         self.scan(self.src)
 
 
-    def new_dst (self, *args):
-        self.dir_dialog.setDirectory (self.dst)
-        if self.dir_dialog.exec ():
-            self.dst= self.dir_dialog.selectedFiles()[0]
+    def new_dst(self, *args):
+        self.dir_dialog.setDirectory(self.dst)
+        if self.dir_dialog.exec():
+            self.dst = self.dir_dialog.selectedFiles()[0]
 
 
-    def new_src (self, *args):
-        self.dir_dialog.setDirectory (self.src)
-        if self.dir_dialog.exec ():
-            self.src= self.dir_dialog.selectedFiles()[0]
+    def new_src(self, *args):
+        self.dir_dialog.setDirectory(self.src)
+        if self.dir_dialog.exec():
+            self.src = self.dir_dialog.selectedFiles()[0]
             self.reset()
 
 
-    def save (self, *args):
-        src= self.image.path
-        self.dir_dialog.setDirectory (self.dst)
-        if self.dir_dialog.exec ():
-            dst_dir= self.dir_dialog.selectedFiles()[0]
+    def save(self, *args):
+        src = self.image.path
+        self.dir_dialog.setDirectory(self.dst)
+        if self.dir_dialog.exec():
+            dst_dir = self.dir_dialog.selectedFiles()[0]
             if src in self.new_files:
-                src= rename_file (src)
+                src = rename_file(src)
 
-            dst= os.path.join (dst_dir, os.path.basename (src))
+            dst = os.path.join(dst_dir, os.path.basename(src))
 
-            logger.info ("%s -> %s" % (src, dst))
-            self.resize (src, dst)
+            logger.info("%s -> %s", src, dst)
+            self.resize(src, dst)
 
-            self.next_image ()
+            self.next_image()
 
 
 if __name__ == '__main__':
