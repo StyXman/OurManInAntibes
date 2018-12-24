@@ -28,9 +28,10 @@ import workflow
 from rename_pictures import rename_file, read_image_date
 
 import logging
-log_format= "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
-logging.basicConfig (level=logging.DEBUG, format=log_format)
-logger= logging.getLogger ("ananke")
+log_format = "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
+# logging.basicConfig(level=logging.DEBUG, format=log_format)
+logging.basicConfig(format=log_format)
+logger = logging.getLogger("ananke")
 
 # TODO:
 # config file (done partially)
@@ -152,12 +153,12 @@ class ImageList:
         return self.images[index]
 
 
-class Filter (QWidget):
-    label_map= { 'K': 'Keep', 'T': 'Take', 'S': 'Stitch', 'M': 'Compare',
-                 'C': 'Crop', 'D': 'Delete', None: '' }
+class Filter(QWidget):
+    label_map = { 'K': 'Keep', 'T': 'Take', 'S': 'Stitch', 'M': 'Compare',
+                  'C': 'Crop', 'D': 'Delete', None: '' }
 
-    def __init__ (self, parent, config, new_files):
-        QWidget.__init__ (self, parent)
+    def __init__(self, parent, config, new_files):
+        QWidget.__init__(self, parent)
         self.zoom_level = 1.0
         self.rotation = 0
 
@@ -167,18 +168,18 @@ class Filter (QWidget):
         self.images = self.all_images
         self.comparing = False
 
-        self.src= config['Directories']['mid']
-        self.dst= os.getcwd ()
-        self.scan (self.src)
+        self.src = config['Directories']['mid']
+        self.dst = os.getcwd()
+        self.scan(self.src)
         self.new_files = new_files
 
-        self.image= None
+        self.image = None
 
-        self.image_actions= defaultdict (lambda: None)
-        self.image_positions= {}
-        self.original_position= None
+        self.image_actions = defaultdict(lambda: None)
+        self.image_positions = {}
+        self.original_position = None
 
-        self.buildUI (parent)
+        self.buildUI(parent)
 
         self.dir_dialog = QFileDialog(self)
         self.dir_dialog.setFileMode(QFileDialog.Directory)
@@ -310,8 +311,8 @@ class Filter (QWidget):
         logger.debug(self.image.size, win_size, self.image.path)
 
         try:
-            hZoom = win_size.width()/self.image.size.width()
-            vZoom = win_size.height()/self.image.size.height()
+            hZoom = win_size.width() / self.image.size.width()
+            vZoom = win_size.height() / self.image.size.height()
             zoom_level = min(hZoom, vZoom)
         except ZeroDivisionError:
             zoom_level = 1
@@ -345,8 +346,8 @@ class Filter (QWidget):
         return position
 
 
-    def show_image (self):
-        logger.info (self.image.path)
+    def show_image(self):
+        logger.info(self.image.path)
         self.image.read()
 
         self.rotate_view()
@@ -356,21 +357,21 @@ class Filter (QWidget):
 
         # we might have rotated the view, but the scene still has the image
         # in its original size, so we use that as bounding rect
-        boundingRect= QRectF (self.item.pixmap ().rect ())
-        logger.debug (boundingRect)
-        self.scene.setSceneRect (boundingRect)
+        boundingRect = QRectF(self.item.pixmap().rect())
+        logger.debug(boundingRect)
+        self.scene.setSceneRect(boundingRect)
 
         if self.image.index in self.image_positions:
-            self.original_position= None
-            position= self.image_positions[self.image.index]
-            logger.debug ("previously moved, back to that point: %f x %f", position.x(), position.y())
-            self.view.centerOn (position)
+            self.original_position = None
+            position = self.image_positions[self.image.path]
+            logger.debug("previously moved, back to that point: %f x %f", position.x(), position.y())
+            self.view.centerOn(position)
         else:
             # TODO: 'undo' the move
-            position= self.view_position ()
-            logger.debug ("original position: %f x %f", position.x(), position.y())
-            self.original_position= position
-            self.view.centerOn (self.item)
+            position = self.view_position()
+            logger.debug("original position: %f x %f", position.x(), position.y())
+            self.original_position = position
+            self.view.centerOn(self.item)
 
         self.update_view()
 
@@ -401,35 +402,36 @@ class Filter (QWidget):
         self.exposure_time.setText(s)
 
 
-    def save_position (self):
-        position= self.view_position ()
-        if (   self.original_position is None
-            or position.x()!=self.original_position.x()
-            or position.y()!=self.original_position.y()):
 
-            logger.debug ("saving position: %f x %f", position.x(), position.y())
+    def save_position(self):
+        position = self.view_position()
+        if (   self.original_position is None
+            or position.x() != self.original_position.x()
+            or position.y() != self.original_position.y()):
+
+            logger.debug("saving position: %f x %f", position.x(), position.y())
             # this way (I hope) I only remember those positions which changed
             self.image_positions[self.image.index] = position
 
 
     # movements
-    def first_image (self, *args):
-        self.move_index (to=0)
+    def first_image(self, *args):
+        self.move_index(to=0)
 
-    def prev_ten (self, *args):
-        self.move_index (how_much=-10)
+    def prev_ten(self, *args):
+        self.move_index(how_much=-10)
 
-    def prev_image (self, *args):
-        self.move_index (how_much=-1)
+    def prev_image(self, *args):
+        self.move_index(how_much=-1)
 
-    def next_image (self, *args):
-        self.move_index (how_much=+1)
+    def next_image(self, *args):
+        self.move_index(how_much=+1)
 
-    def next_ten (self, *args):
-        self.move_index (how_much=+10)
+    def next_ten(self, *args):
+        self.move_index(how_much=+10)
 
-    def last_image (self, *args):
-        self.move_index (to=len (self.images)-1)
+    def last_image(self, *args):
+        self.move_index(to=len(self.images)-1)
 
 
     def toggle_fullsize (self, *args):
@@ -448,10 +450,12 @@ class Filter (QWidget):
         self.image_actions[self.image]= 'K'
         self.next_image ()
 
+
     # Tag -> /gallery/foo, as-is
     def tag (self, *args):
         self.image_actions[self.image]= 'T'
         self.next_image ()
+
 
     # Stitch -> 02-new/stitch
     def stitch (self, *args):
@@ -460,7 +464,7 @@ class Filter (QWidget):
 
 
     # coMpare
-    def select_for_compare (self, *args):
+    def select_for_compare(self, *args):
         if self.image_actions[self.image] == 'M':
             # TODO?: undo/toggle
             # NOTE: this can already be achieved by Untag
@@ -471,7 +475,7 @@ class Filter (QWidget):
             insort(self.compare_set, self.image)
             logger.debug(self.compare_set.images)
 
-        self.next_image ()
+        self.next_image()
 
 
     def compare(self):
@@ -481,13 +485,13 @@ class Filter (QWidget):
         self.move_index()
 
     # Crop -> launch gwenview
-    def crop (self, *args):
+    def crop(self, *args):
         self.image_actions[self.image]= 'C'
-        self.next_image ()
+        self.next_image()
 
 
     # Delete -> /dev/null
-    def delete (self, *args):
+    def delete(self, *args):
         self.image_actions[self.image]= 'D'
 
         if self.comparing:
@@ -510,25 +514,26 @@ class Filter (QWidget):
             pass
 
 
-    def resize (self, src, dst):
-        src_meta= GExiv2.Metadata (src)
-        src_p= QPixmap (src)
-        dst_p= src_p.scaled (4500, 3000, Qt.KeepAspectRatio,
+    def resize(self, src, dst):
+        src_meta = GExiv2.Metadata(src)
+        src_p = QPixmap(src)
+        dst_p = src_p.scaled(4500, 3000, Qt.KeepAspectRatio,
                              Qt.SmoothTransformation)
 
-        dst_p.save (src)
-        shutil.move (src, dst)
+        dst_p.save(src)
+        shutil.move(src, dst)
 
         # copy all the metadata
-        dst_meta= GExiv2.Metadata (dst)
-        for tag in src_meta.get_tags ():
-            dst_meta[tag]= src_meta[tag]
-        dst_meta.save_file ()
+        dst_meta = GExiv2.Metadata(dst)
+        for tag in src_meta.get_tags():
+            dst_meta[tag] = src_meta[tag]
+
+        dst_meta.save_file()
 
 
     def apply (self, *args):
         if not self.comparing:
-            hugin= False
+            hugin = False
 
             if len ([ action for action in self.image_actions.values ()
                             if action in ('K', 'T')])>0:
@@ -537,14 +542,14 @@ class Filter (QWidget):
             for img, action in sorted (self.image_actions.items (),
                                     key=lambda s: s[0].path):  # sort by fname
                 src = img.path
-                dst= os.path.join (self.dst, os.path.basename (src))
+                dst = os.path.join(self.dst, os.path.basename(src))
 
                 try:
                     if src in self.new_files and action not in ('C', 'D'):
                         # rename
                         src= rename_file (src)
 
-                    if   action=='K':
+                    if   action == 'K':
                         # Keep -> /gallery/foo, as-is
                         logger.info ("%s -> %s" % (src, dst))
                         shutil.move (src, dst)
@@ -580,12 +585,12 @@ class Filter (QWidget):
                         # shutil.move (src, dst)
 
 
-                    elif action=='D':
+                    elif action == 'D':
                         # Delete -> /dev/null
-                        os.unlink (src)
-                        logger.info ("%s deleted" % (src, ))
+                        os.unlink(src)
+                        logger.info("%s deleted" % (src, ))
                 except FileNotFoundError as e:
-                    logger.info (e)
+                    logger.info(e)
 
             if hugin:
                 os.system ('hugin')
@@ -620,15 +625,15 @@ class Filter (QWidget):
         self.reset()
 
 
-    def reset (self, new_root=None):
+    def reset(self, new_root=None):
         if new_root is not None:
-            self.src= new_root
+            self.src = new_root
 
-        self.image_actions.clear ()
+        self.image_actions.clear()
         self.all_images.clear()
         self.compare_set.clear()
         self.comparing = False
-        self.scan (self.src)
+        self.scan(self.src)
 
 
     def new_dst (self, *args):
