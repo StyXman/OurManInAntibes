@@ -59,6 +59,7 @@ class Image:
         self.rotation = None
         self.zoom = None
         self.position = None
+        self.action = None
 
 
     def read(self):
@@ -446,31 +447,31 @@ class Filter(QWidget):
 
     # image actions
     # Keep -> /gallery/foo, resized
-    def keep (self, *args):
-        self.image_actions[self.image]= 'K'
-        self.next_image ()
+    def keep(self, *args):
+        self.image.action = 'K'
+        self.next_image()
 
 
     # Tag -> /gallery/foo, as-is
-    def tag (self, *args):
-        self.image_actions[self.image]= 'T'
-        self.next_image ()
+    def tag(self, *args):
+        self.image.action = 'T'
+        self.next_image()
 
 
     # Stitch -> 02-new/stitch
-    def stitch (self, *args):
-        self.image_actions[self.image]= 'S'
-        self.next_image ()
+    def stitch(self, *args):
+        self.image.action = 'S'
+        self.next_image()
 
 
     # coMpare
     def select_for_compare(self, *args):
-        if self.image_actions[self.image] == 'M':
+        if self.image.action == 'M':
             # TODO?: undo/toggle
             # NOTE: this can already be achieved by Untag
             pass
         else:
-            self.image_actions[self.image] = 'M'
+            self.image.action = 'M'
             # ugh
             insort(self.compare_set, self.image)
             logger.debug(self.compare_set.images)
@@ -486,13 +487,14 @@ class Filter(QWidget):
 
     # Crop -> launch gwenview
     def crop(self, *args):
-        self.image_actions[self.image]= 'C'
+        self.image.action = 'C'
         self.next_image()
 
 
     # Delete -> /dev/null
     def delete(self, *args):
-        self.image_actions[self.image]= 'D'
+        self.image.action = 'D'
+        logger.info("[%d] %s marked for deletion", self.images.index, self.image.path)
 
         if self.comparing:
             # remove the image from the list and refresh the view
@@ -505,7 +507,7 @@ class Filter(QWidget):
 
     def untag(self, *args):
         try:
-            del self.image_actions[self.image]
+            self.image.action = None
             # don't move, most probably I'm reconsidering what to do
             # but change the label
             self.tag_view.setText('')
@@ -535,14 +537,13 @@ class Filter(QWidget):
         if not self.comparing:
             hugin = False
 
-            if len ([ action for action in self.image_actions.values ()
-                            if action in ('K', 'T')])>0:
-                self.new_dst ()
+            if len([ img.action for img in self.images if img.action in ('K', 'T') ]) > 0:
+                self.new_dst()
 
-            for img, action in sorted (self.image_actions.items (),
-                                    key=lambda s: s[0].path):  # sort by fname
+            for index, img in enumerate(self.images):  # already sorted by fname
                 src = img.path
                 dst = os.path.join(self.dst, os.path.basename(src))
+                action = img.action
 
                 try:
                     if src in self.new_files and action not in ('C', 'D'):
@@ -603,8 +604,8 @@ class Filter(QWidget):
             # untag all images marked for compare
             for image in self.compare_set:
                 # but only those still marked 'M'
-                if self.image_actions[image] == 'M':
-                    del self.image_actions[image]
+                if image.action == 'M':
+                    image.action = None
 
             self.compare_set.clear()
             self.images = self.all_images
@@ -612,13 +613,17 @@ class Filter(QWidget):
 
 
     def expunge(self, *args):
-        for img, action in self.image_actions.items():
+        for img in self.images:
             src = img.path
             try:
-                if action == 'D':
+                if img.action == 'D':
                     # Delete -> /dev/null
                     os.unlink(src)
                     logger.info("%s deleted", src)
+
+                    # we don't really remove images, just mark them as so
+                    # so remove the action
+                    img.action = None
             except FileNotFoundError as e:
                 logger.info(e)
 
