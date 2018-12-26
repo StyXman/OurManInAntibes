@@ -99,7 +99,7 @@ class Image:
 
 
     def __lt__(self, other):
-        return self.index < other.index
+        return self.path < other.path
 
 
 class ImageList:
