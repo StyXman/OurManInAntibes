@@ -754,7 +754,7 @@ if __name__ == '__main__':
     win = QMainWindow()
 
     view = Filter(win, config, new)
-    firstImage = QTimer.singleShot(200, view.first_image)
+    show_first_image = QTimer.singleShot(200, view.first_image)
 
     win.setCentralWidget(view)
     win.showFullScreen()
