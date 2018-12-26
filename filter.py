@@ -50,8 +50,7 @@ class Image:
         ('6', 270)
     ])
 
-    def __init__(self, index, path):
-        self.index = index
+    def __init__(self, path):
         self.path = path
         self.pixmap = None
         self.metadata = None
@@ -130,16 +129,23 @@ class ImageList:
         logger.debug((self.images, self.index))
 
 
-    def insert(self, index, image):
-        self.images.insert(index, image)
+
+    def add(self, image):
+        insort(self.images, image)
 
 
-    def remove(self):
-        """Remove the current image from the list."""
-        self.images.remove(self.current_image)
-        # this also handles when we remove() the last image
-        self.move_index(self.index)
-        logger.debug((self.images, self.index))
+    def remove(self, item=None):
+        """Remove the current image from the list or the given item."""
+        if item is None:
+            index = self.index
+        else:
+            index = bisect_left(self.images, item)
+            if self.images[index] != item:
+                raise ValueError
+
+        self.images[index].deleted = True
+        logger.debug( (index, self.images[index].path) )
+        self.move_index()
 
 
     def clear(self):
