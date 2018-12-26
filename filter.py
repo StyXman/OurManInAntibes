@@ -11,7 +11,7 @@ import sys
 from collections import defaultdict, OrderedDict
 import shutil
 from configparser import ConfigParser
-from bisect import insort
+from bisect import insort, bisect_left
 from fractions import Fraction
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
