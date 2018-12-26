@@ -37,9 +37,6 @@ logger = logging.getLogger("ananke")
 # TODO:
 # config file (done partially)
 # properly handle reload/other dirs (compare)
-# compare by just navigating through selected images
-# save w/ resize
-# rotate
 
 class Image:
     # see http://www.daveperrett.com/images/articles/2012-07-28-exif-orientation-handling-is-a-ghetto/EXIF_Orientations.jpg
@@ -50,6 +47,11 @@ class Image:
         ('3', 180),
         ('6', 270)
     ])
+
+    # this is counter intuitive, but believe me, it's like that
+    left  =  1
+    right = -1
+
 
     def __init__(self, path):
         self.path = path
@@ -82,17 +84,32 @@ class Image:
                 # tags that don't actually are in the file
 
                 # this implicitly loads the metadata
-                rot = self.metadata['Exif.Image.Orientation']
+                self.exif_rotation = self.metadata['Exif.Image.Orientation']
             except KeyError:
                 # guess :-/
-                logger.info("rotation 'guessed'")
-                rot = '1'
+                logger.info("exif_rotation 'guessed'")
+                self.exif_rotation = '1'
 
-            self.rotation = self.rotation_to_degrees[rot]
-            if self.rotation in (90, 270):
-                self.size = QSize (self.size.height (), self.size.width ())
+            self.exif_rot_to_rot()
 
             self.zoom
+
+
+    def rotate(self, where):
+        index = list(self.rotation_to_degrees.keys()).index(self.exif_rotation)
+        index += where
+        index %= 4
+
+        self.exif_rotation = list(self.rotation_to_degrees.keys())[index]
+        self.metadata.set_orientation(self.exif_rotation)
+        self.metadata.save_file()
+        self.exif_rot_to_rot()
+
+
+    def exif_rot_to_rot(self):
+        self.rotation = self.rotation_to_degrees[self.exif_rotation]
+        if self.rotation in (90, 270):
+            self.size = QSize(self.size.height(), self.size.width())
 
 
     def release(self):
@@ -284,6 +301,8 @@ class Filter(QWidget):
                           (Qt.Key_PageDown,  self.next_ten),
                           (Qt.Key_End,       self.last_image),
 
+                          (Qt.Key_Greater, self.rotate_right),
+                          (Qt.Key_Less,    self.rotate_left),
                           (Qt.Key_F,       self.toggle_fullsize),
 
                           (Qt.Key_K, self.keep),
@@ -475,6 +494,16 @@ class Filter(QWidget):
         else:
             # logger.info('orig')
             self.zoom(1.0)
+
+
+    def rotate_left(self, *args):
+        self.image.rotate(Image.left)
+        self.rotate_view()
+
+
+    def rotate_right(self, *args):
+        self.image.rotate(Image.right)
+        self.rotate_view()
 
 
     # image actions
