@@ -253,8 +253,8 @@ class Filter(QWidget):
         # main view
         self.scene = QGraphicsScene()
 
-        self.item = QGraphicsPixmapItem()
-        self.scene.addItem(self.item)
+        self.pixmap_view = QGraphicsPixmapItem()
+        self.scene.addItem(self.pixmap_view)
 
         self.view = QGraphicsView(self.scene, parent)
         self.view.setFrameShadow(QFrame.Plain)
@@ -388,13 +388,13 @@ class Filter(QWidget):
         self.image.read()
 
         self.rotate_view()
-        self.item.setPixmap(self.image.pixmap)
+        self.pixmap_view.setPixmap(self.image.pixmap)
         if self.zoom_level != 1.0:
             self.zoom_to_fit()
 
         # we might have rotated the view, but the scene still has the image
         # in its original size, so we use that as bounding rect
-        boundingRect = QRectF(self.item.pixmap().rect())
+        boundingRect = QRectF(self.pixmap_view.pixmap().rect())
         logger.debug(boundingRect)
         self.scene.setSceneRect(boundingRect)
 
@@ -408,7 +408,7 @@ class Filter(QWidget):
             position = self.view_position()
             logger.debug("original position: %f x %f", position.x(), position.y())
             self.original_position = position
-            self.view.centerOn(self.item)
+            self.view.centerOn(self.pixmap_view)
 
         self.update_view()
 
