@@ -383,7 +383,7 @@ class Filter(QWidget):
         logger.debug(boundingRect)
         self.scene.setSceneRect(boundingRect)
 
-        if self.image.index in self.image_positions:
+        if self.image.path in self.image_positions:
             self.original_position = None
             position = self.image_positions[self.image.path]
             logger.debug("previously moved, back to that point: %f x %f", position.x(), position.y())
@@ -448,7 +448,7 @@ class Filter(QWidget):
 
             logger.debug("saving position: %f x %f", position.x(), position.y())
             # this way (I hope) I only remember those positions which changed
-            self.image_positions[self.image.index] = position
+            self.image_positions[self.image.path] = position
 
 
     # movements
