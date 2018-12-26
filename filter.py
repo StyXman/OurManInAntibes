@@ -114,17 +114,29 @@ class ImageList:
         if to is not None:
             self.index = to
 
-        self.index += how_much
-        self.index %= len(self.images)
+        if how_much != 0:
+            direction = how_much // abs(how_much)
+            how_much = abs(how_much)
+        else:
+            # move forward
+            direction = 1
 
-        if self.current_image is not None:
-            self.current_image.release()
+        moved = 0
+        image = self.images[self.index]
 
-        self.current_image = self.images[self.index]
-        logger.debug((self.images, self.index))
+        while moved < how_much or image.deleted:
+            logger.debug( (self.index, image.path, image.deleted, moved, how_much) )
+            self.index += direction
+            self.index %= len(self.images)
 
+            # skip deleted images
+            if not image.deleted:
+                moved += 1
 
+            image = self.images[self.index]
 
+        logger.debug( (self.index, image.path, image.deleted, moved, how_much) )
+        self.current_image = image
 
 
     def add(self, image):
