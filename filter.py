@@ -12,6 +12,7 @@ from collections import defaultdict, OrderedDict
 import shutil
 from configparser import ConfigParser
 from bisect import insort
+from fractions import Fraction
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
 from PyQt5.QtWidgets import QGraphicsPixmapItem, QAction
@@ -218,8 +219,8 @@ class Filter(QWidget):
         self.widget = QWidget(self.splitter)
         self.label_layout = QVBoxLayout(self.widget)
 
-        for count, name in enumerate([ 'exposure_time', 'fnumber', 'iso_speed',
-                                    'focal_length', 'date', ]):
+        for name in [ 'size', 'exposure_time', 'fnumber', 'iso_speed', 'focal_length',
+                      'date', 'active_dlightning', 'exposure_compensation']:
             key_label = QLabel(name.replace('_', ' ').title(), self.widget)
             self.label_layout.addWidget(key_label)
 
@@ -422,6 +423,21 @@ class Filter(QWidget):
             s = '%d/%ds' % (f.numerator, f.denominator)
         self.exposure_time.setText(s)
 
+        try:
+            self.active_dlightning.setText(meta['Exif.Nikon3.ActiveDLighting'])
+        except KeyError:
+            self.active_dlightning.setText('None')
+
+        try:
+            stops = Fraction(meta['Exif.Photo.ExposureBiasValue'])
+        except (KeyError, ZeroDivisionError):
+            self.exposure_compensation.setText('None')
+        else:
+            self.exposure_compensation.setText(str(stops))
+
+        # Exif.Nikon3.WhiteBalance
+        # Exif.Nikon3.WhiteBalanceBias
+        # Exif.Nikon3.Focus
 
 
     def save_position(self):
