@@ -419,6 +419,11 @@ class Filter(QWidget):
         self.tag_view.setText(label)
 
         meta = self.image.metadata
+
+        size = "%d x %d" % (meta.get_metadata_pixel_width(),
+                            meta.get_metadata_pixel_height())
+        self.size.setText(size)
+
         date = read_image_date(self.image.path, meta)
         if date is None:
             self.date.setText('unknown')
