@@ -124,9 +124,6 @@ class ImageList:
         logger.debug((self.images, self.index))
 
 
-    def append(self, image):
-        self.images.append(image)
-        logger.debug((self.images, self.index))
 
 
 
