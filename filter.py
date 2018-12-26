@@ -270,8 +270,7 @@ class Filter(QWidget):
         v.addWidget(self.view)
         v.addLayout(status_bar)
 
-        # TODO
-        self.splitter.setSizes([10, 90])
+        self.splitter.setSizes([165, 1435])
 
         h = QHBoxLayout(self)
         h.setContentsMargins(QMargins(0, 0, 0, 0))
