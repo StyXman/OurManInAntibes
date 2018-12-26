@@ -307,15 +307,12 @@ class Filter(QWidget):
 
 
     def scan(self, src):
-        index = 0
-
         logger.debug('scanning %r', src)
         for r, dirs, files in os.walk(os.path.abspath(src)):
-            for name in sorted(files):
+            for name in files:
                 if name[-4:].lower() in ('.jpg', '.png'):
-                    # logger.info ('found %s' % name)
-                    self.images.append(Image(index, os.path.join(r, name)))
-                    index += 1
+                    # logger.info('found %s',  name)
+                    self.images.add(Image(os.path.join(r, name)))
 
 
     def rotate_view(self):
@@ -509,7 +506,7 @@ class Filter(QWidget):
         else:
             self.image.action = 'M'
             # ugh
-            insort(self.compare_set, self.image)
+            self.compare_set.add(self.image)
             logger.debug(self.compare_set.images)
 
         self.next_image()
@@ -626,6 +623,9 @@ class Filter(QWidget):
                         # Delete -> /dev/null
                         os.unlink(src)
                         logger.info("%s deleted", src)
+                        # mark as non existing, move_index() will skip these
+                        # TODO:
+                        self.images.remove(img)
                 except FileNotFoundError as e:
                     logger.info(e)
 
@@ -656,6 +656,7 @@ class Filter(QWidget):
                     # Delete -> /dev/null
                     os.unlink(src)
                     logger.info("%s deleted", src)
+                    self.images.remove(img)
 
                     # we don't really remove images, just mark them as so
                     # so remove the action
