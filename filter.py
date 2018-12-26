@@ -59,6 +59,7 @@ class Image:
         self.zoom = None
         self.position = None
         self.action = None
+        self.deleted = False
 
 
     def read(self):
