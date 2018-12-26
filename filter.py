@@ -8,7 +8,7 @@
 import os
 import os.path
 import sys
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import shutil
 from configparser import ConfigParser
 from bisect import insort
@@ -43,12 +43,12 @@ logger = logging.getLogger("ananke")
 class Image:
     # see http://www.daveperrett.com/images/articles/2012-07-28-exif-orientation-handling-is-a-ghetto/EXIF_Orientations.jpg
     # rotations as read from the metadata are strings
-    rotation_to_degrees = {
-        '1': 0,
-        '8': 90,
-        '3': 180,
-        '6': 270
-    }
+    rotation_to_degrees = OrderedDict([
+        ('1', 0),
+        ('8', 90),
+        ('3', 180),
+        ('6', 270)
+    ])
 
     def __init__(self, index, path):
         self.index = index
