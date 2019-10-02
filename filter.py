@@ -192,6 +192,19 @@ class ImageList:
         return ( image for image in self.images if image is not None )
 
 
+def catch(method):
+    def wrapped(*args, **kwargs):
+        try:
+            return method(*args, **kwargs)
+        except Exception as e:
+            # import pdb
+            # pdb.set_trace()
+            import traceback
+            traceback.print_exc()
+
+    return wrapped
+
+
 class Filter(QWidget):
     label_map = { 'K': 'Keep', 'T': 'Take', 'S': 'Stitch', 'M': 'Compare',
                   'C': 'Crop', 'D': 'Delete', None: '' }
@@ -323,7 +336,7 @@ class Filter(QWidget):
             action.triggered.connect(slot)
             self.view.addAction(action)
 
-
+    @catch
     def scan(self, src):
         logger.debug('scanning %r', src)
         for r, dirs, files in os.walk(os.path.abspath(src)):
@@ -333,6 +346,7 @@ class Filter(QWidget):
                     self.images.add(Image(os.path.join(r, name)))
 
 
+    @catch
     def rotate_view(self):
         # we have to 'undo' the rotations, so the numbers are negative
         rotate = -self.image.rotation
@@ -343,6 +357,7 @@ class Filter(QWidget):
         logger.debug( (rotate, self.rotation) )
 
 
+    @catch
     def zoom_to_fit(self):
         win_size = self.view.size()
         logger.debug( (self.image.size, win_size, self.image.path) )
@@ -357,6 +372,7 @@ class Filter(QWidget):
         self.zoom(zoom_level)
 
 
+    @catch
     def zoom(self, zoom_level):
         # logger.info(zoom_level)
         scale = zoom_level/self.zoom_level
@@ -366,6 +382,7 @@ class Filter(QWidget):
         self.zoom_level = zoom_level
 
 
+    @catch
     def move_index(self, to=None, how_much=0):
         if self.image is not None:
             self.save_position()
@@ -376,6 +393,7 @@ class Filter(QWidget):
         self.show_image()
 
 
+    @catch
     def view_position(self):
         view_size = self.view.size()
         center = QPoint(view_size.width()/2, view_size.height()/2)
@@ -383,6 +401,7 @@ class Filter(QWidget):
         return position
 
 
+    @catch
     def show_image(self):
         logger.info(self.image.path)
         self.image.read()
@@ -413,6 +432,7 @@ class Filter(QWidget):
         self.update_view()
 
 
+    @catch
     def update_view(self):
         self.fname.setText(self.image.path)
         label = self.label_map[self.image.action]
@@ -460,6 +480,7 @@ class Filter(QWidget):
         # Exif.Nikon3.Focus
 
 
+    @catch
     def save_position(self):
         position = self.view_position()
         if (   self.original_position is None
@@ -472,25 +493,32 @@ class Filter(QWidget):
 
 
     # movements
+    @catch
     def first_image(self, *args):
         self.move_index(to=0)
 
+    @catch
     def prev_ten(self, *args):
         self.move_index(how_much=-10)
 
+    @catch
     def prev_image(self, *args):
         self.move_index(how_much=-1)
 
+    @catch
     def next_image(self, *args):
         self.move_index(how_much=+1)
 
+    @catch
     def next_ten(self, *args):
         self.move_index(how_much=+10)
 
+    @catch
     def last_image(self, *args):
         self.move_index(to=len(self.images)-1)
 
 
+    @catch
     def toggle_fullsize(self, *args):
         # noooooooooooooooothing compares...
         if abs(self.zoom_level - 1.0) < 0.000001:
@@ -501,11 +529,13 @@ class Filter(QWidget):
             self.zoom(1.0)
 
 
+    @catch
     def rotate_left(self, *args):
         self.image.rotate(Image.left)
         self.rotate_view()
 
 
+    @catch
     def rotate_right(self, *args):
         self.image.rotate(Image.right)
         self.rotate_view()
@@ -513,24 +543,28 @@ class Filter(QWidget):
 
     # image actions
     # Keep -> /gallery/foo, resized
+    @catch
     def keep(self, *args):
         self.image.action = 'K'
         self.next_image()
 
 
     # Tag -> /gallery/foo, as-is
+    @catch
     def tag(self, *args):
         self.image.action = 'T'
         self.next_image()
 
 
     # Stitch -> 02-new/stitch
+    @catch
     def stitch(self, *args):
         self.image.action = 'S'
         self.next_image()
 
 
     # coMpare
+    @catch
     def select_for_compare(self, *args):
         if self.image.action == 'M':
             # TODO?: undo/toggle
@@ -545,6 +579,7 @@ class Filter(QWidget):
         self.next_image()
 
 
+    @catch
     def compare(self):
         logger.info('comparing')
         self.comparing = True
@@ -552,12 +587,14 @@ class Filter(QWidget):
         self.move_index()
 
     # Crop -> launch gwenview
+    @catch
     def crop(self, *args):
         self.image.action = 'C'
         self.next_image()
 
 
     # Delete -> /dev/null
+    @catch
     def delete(self, *args):
         self.image.action = 'D'
         logger.info("[%d] %s marked for deletion", self.images.index, self.image.path)
@@ -571,6 +608,7 @@ class Filter(QWidget):
             self.next_image()
 
 
+    @catch
     def untag(self, *args):
         try:
             self.image.action = None
@@ -582,6 +620,7 @@ class Filter(QWidget):
             pass
 
 
+    @catch
     def resize(self, src, dst):
         src_meta = GExiv2.Metadata(src)
         src_p = QPixmap(src)
@@ -599,6 +638,7 @@ class Filter(QWidget):
         dst_meta.save_file()
 
 
+    @catch
     def apply(self, *args):
         if not self.comparing:
             hugin = False
@@ -681,6 +721,7 @@ class Filter(QWidget):
             self.move_index()
 
 
+    @catch
     def expunge(self, *args):
         for img in self.images:
             src = img.path
@@ -700,6 +741,7 @@ class Filter(QWidget):
         self.reset()
 
 
+    @catch
     def reset(self, new_root=None):
         if new_root is not None:
             self.src = new_root
@@ -711,12 +753,14 @@ class Filter(QWidget):
         self.scan(self.src)
 
 
+    @catch
     def new_dst(self, *args):
         self.dir_dialog.setDirectory(self.dst)
         if self.dir_dialog.exec():
             self.dst = self.dir_dialog.selectedFiles()[0]
 
 
+    @catch
     def new_src(self, *args):
         self.dir_dialog.setDirectory(self.src)
         if self.dir_dialog.exec():
@@ -724,6 +768,7 @@ class Filter(QWidget):
             self.reset()
 
 
+    @catch
     def save(self, *args):
         src = self.image.path
         self.dir_dialog.setDirectory(self.dst)
