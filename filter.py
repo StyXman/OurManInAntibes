@@ -134,8 +134,10 @@ class ImageList:
 
 
     def move_index(self, to=None, how_much=0):
+        logger.debug(self.index)
         if to is not None:
             self.index = to
+        logger.debug(self.index)
 
         if how_much != 0:
             direction = how_much // abs(how_much)
@@ -145,6 +147,7 @@ class ImageList:
             direction = 1
 
         moved = 0
+        logger.debug(len(self.images))
         image = self.images[self.index]
 
         while moved < how_much or image.deleted:
@@ -675,6 +678,9 @@ class Filter(QWidget):
                 src = img.path
                 dst = os.path.join(self.dst, os.path.basename(src))
                 action = img.action
+
+                if action is not None:
+                    logger.debug((src, dst, action))
 
                 try:
                     if src in self.new_files and action not in ('C', 'D'):
