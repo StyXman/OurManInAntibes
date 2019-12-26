@@ -13,6 +13,7 @@ import shutil
 from configparser import ConfigParser
 from bisect import insort, bisect_left
 from fractions import Fraction
+from random import randint as random
 
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
 from PyQt5.QtWidgets import QGraphicsPixmapItem, QAction
@@ -123,6 +124,8 @@ class Image:
 
 class ImageList:
     """A list of Images with a cursor."""
+
+
     def __init__(self):
         self.images = []
         self.index = 0
@@ -137,7 +140,7 @@ class ImageList:
             direction = how_much // abs(how_much)
             how_much = abs(how_much)
         else:
-            # move forward
+            # find the next non-deleted image
             direction = 1
 
         moved = 0
@@ -219,6 +222,7 @@ class Filter(QWidget):
         # start with all images
         self.images = self.all_images
         self.comparing = False
+        self.random = False
 
         self.src = config['Directories']['mid']
         self.dst = os.getcwd()
@@ -238,6 +242,11 @@ class Filter(QWidget):
         self.dir_dialog.modal = False
         self.dir_dialog.setOption(QFileDialog.ShowDirsOnly)
         self.dir_dialog.setAcceptMode(QFileDialog.AcceptSave)
+
+
+    @catch
+    def toggle_random(self, *args):
+        self.random = not self.random
 
 
     def buildUI(self, parent):
@@ -313,6 +322,7 @@ class Filter(QWidget):
                           (Qt.Key_Space,     self.next_image),
                           (Qt.Key_PageDown,  self.next_ten),
                           (Qt.Key_End,       self.last_image),
+                          (Qt.CTRL + Qt.Key_R, self.toggle_random),
 
                           (Qt.Key_Greater, self.rotate_right),
                           (Qt.Key_Less,    self.rotate_left),
@@ -387,7 +397,10 @@ class Filter(QWidget):
         if self.image is not None:
             self.save_position()
 
-        self.images.move_index(to, how_much)
+        if not self.random:
+            self.images.move_index(to, how_much)
+        else:
+            self.images.move_index(to=random(0, len(self.images)))
 
         self.image = self.images.current_image
         self.show_image()
@@ -398,6 +411,7 @@ class Filter(QWidget):
         view_size = self.view.size()
         center = QPoint(view_size.width()/2, view_size.height()/2)
         position = self.view.mapToScene(center)
+
         return position
 
 
