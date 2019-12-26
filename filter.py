@@ -403,6 +403,9 @@ class Filter(QWidget):
         if self.image is not None:
             self.save_position()
 
+        if self.image is not None:
+            self.image.release()
+
         if not self.random:
             self.images.move_index(to, how_much)
         else:
@@ -560,7 +563,7 @@ class Filter(QWidget):
     @catch
     def rotate_left(self, *args):
         self.image.rotate(Image.left)
-        self.rotate_view()
+        self.show_image()
 
 
     @catch
@@ -612,7 +615,8 @@ class Filter(QWidget):
         logger.info('comparing')
         self.comparing = True
         self.images = self.compare_set
-        self.move_index()
+        self.move_index(to=0)
+
 
     # Crop -> launch gwenview
     @catch
@@ -693,7 +697,7 @@ class Filter(QWidget):
                         shutil.move(src, dst)
 
                     elif action == 'T':
-                        # Tag -> /gallery/foo, resized
+                        # Take -> /gallery/foo, resized
                         self.resize(src, dst)
 
                     elif action == 'S':
@@ -716,7 +720,7 @@ class Filter(QWidget):
 
                     elif action == 'C':
                         # Crop -> launch gwenview
-                        os.system('gwenview %s', src)
+                        os.system('gwenview %s' % src)
 
                         # asume the file was saved under a new name
                         # logger.info("%s -> %s", src, dst)
@@ -768,8 +772,6 @@ class Filter(QWidget):
                     img.action = None
             except FileNotFoundError as e:
                 logger.info(e)
-
-        self.reset()
 
 
     @catch
