@@ -43,6 +43,7 @@ class Image:
     # see http://www.daveperrett.com/images/articles/2012-07-28-exif-orientation-handling-is-a-ghetto/EXIF_Orientations.jpg
     # rotations as read from the metadata are strings
     rotation_to_degrees = OrderedDict([
+        ('0', 0),  # some Android camera apps seem to set this value, I assume it's none
         ('1', 0),
         ('8', 90),
         ('3', 180),
