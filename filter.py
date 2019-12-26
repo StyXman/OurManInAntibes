@@ -317,10 +317,12 @@ class Filter(QWidget):
 
         # now... ACTION!(s)
         for key, slot in ((Qt.Key_Home,      self.first_image),
+                          (Qt.CTRL + Qt.Key_PageUp,   self.prev_hundred),
                           (Qt.Key_PageUp,    self.prev_ten),
                           (Qt.Key_Backspace, self.prev_image),
                           (Qt.Key_Space,     self.next_image),
                           (Qt.Key_PageDown,  self.next_ten),
+                          (Qt.CTRL + Qt.Key_PageDown, self.next_hundred),
                           (Qt.Key_End,       self.last_image),
                           (Qt.CTRL + Qt.Key_R, self.toggle_random),
 
@@ -512,6 +514,10 @@ class Filter(QWidget):
         self.move_index(to=0)
 
     @catch
+    def prev_hundred(self, *args):
+        self.move_index(how_much=-100)
+
+    @catch
     def prev_ten(self, *args):
         self.move_index(how_much=-10)
 
@@ -526,6 +532,10 @@ class Filter(QWidget):
     @catch
     def next_ten(self, *args):
         self.move_index(how_much=+10)
+
+    @catch
+    def next_hundred(self, *args):
+        self.move_index(how_much=+100)
 
     @catch
     def last_image(self, *args):
