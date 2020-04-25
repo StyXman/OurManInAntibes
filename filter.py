@@ -474,8 +474,8 @@ class Filter(QWidget):
         else:
             self.date.setText(date.isoformat())
 
-        self.fnumber.setText(str(meta.get_fnumber()))
-        self.focal_length.setText(str(meta.get_focal_length()))
+        self.fnumber.setText('f/' + str(meta.get_fnumber()))
+        self.focal_length.setText(str(int(meta.get_focal_length())) + 'mm')
         self.iso_speed.setText(str(meta.get_iso_speed()))
 
         f = meta.get_exposure_time()
