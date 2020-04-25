@@ -262,8 +262,9 @@ class Filter(QWidget):
         self.widget = QWidget(self.splitter)
         self.label_layout = QVBoxLayout(self.widget)
 
-        for name in [ 'size', 'exposure_time', 'fnumber', 'iso_speed', 'focal_length',
-                      'date', 'active_dlightning', 'exposure_compensation']:
+        for name in [ 'date', 'size', 'focal_length', 
+                      'exposure_time', 'exposure_compensation', 'fnumber', 'iso_speed',
+                      'active_dlightning', ]:
             key_label = QLabel(name.replace('_', ' ').title(), self.widget)
             self.label_layout.addWidget(key_label)
 
