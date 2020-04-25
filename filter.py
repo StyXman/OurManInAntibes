@@ -262,7 +262,7 @@ class Filter(QWidget):
         self.widget = QWidget(self.splitter)
         self.label_layout = QVBoxLayout(self.widget)
 
-        for name in [ 'date', 'size', 'focal_length', 
+        for name in [ 'date', 'size', 'focal_length', 'focus_distance',
                       'exposure_time', 'exposure_compensation', 'fnumber', 'iso_speed',
                       'active_dlightning', ]:
             key_label = QLabel(name.replace('_', ' ').title(), self.widget)
@@ -498,6 +498,15 @@ class Filter(QWidget):
             self.exposure_compensation.setText('None')
         else:
             self.exposure_compensation.setText(str(stops))
+
+        try:
+            distance = int(meta['Exif.NikonLd3.FocusDistance'])
+        except KeyError:
+            self.focus_distance.setText('None')
+        else:
+            # see https://github.com/exiftool/exiftool/blob/master/lib/Image/ExifTool/Nikon.pm#L4235
+            value_conv = 0.01 * 10 ** (distance / 40)
+            self.focus_distance.setText("%.1fm" % value_conv)
 
         # Exif.Nikon3.WhiteBalance
         # Exif.Nikon3.WhiteBalanceBias
