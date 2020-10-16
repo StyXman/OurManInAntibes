@@ -41,16 +41,16 @@ logger = logging.getLogger("ananke")
 
 class Image:
     # see http://www.daveperrett.com/images/articles/2012-07-28-exif-orientation-handling-is-a-ghetto/EXIF_Orientations.jpg
+    # WTF designed that sequence...
     # rotations as read from the metadata are strings
     rotation_to_degrees = OrderedDict([
-        ('0', 0),  # some Android camera apps seem to set this value, I assume it's none
         ('1', 0),
         ('8', 90),
         ('3', 180),
         ('6', 270)
     ])
 
-    # this is counter intuitive, but believe me, it's like that
+    # this *is* counter intuitive, but believe me, it's like that
     left  =  1
     right = -1
 
@@ -98,11 +98,19 @@ class Image:
 
 
     def rotate(self, where):
-        index = list(self.rotation_to_degrees.keys()).index(self.exif_rotation)
+        rotations = list(self.rotation_to_degrees.keys())
+
+        # some Android camera apps seem to set this value, I assume it's none
+        if self.exif_rotation == 0:
+            self.exif_rotation = 1
+
+        index = rotations.index(self.exif_rotation)
         index += where
         index %= 4
 
-        self.exif_rotation = list(self.rotation_to_degrees.keys())[index]
+        rotation = rotations[index]
+        logger.debug("%s -> %s [%d]", self.exif_rotation, rotation, index)
+        self.exif_rotation = rotation
         self.metadata.set_orientation(self.exif_rotation)
         self.metadata.save_file()
         self.exif_rot_to_rot()
