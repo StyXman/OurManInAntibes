@@ -112,7 +112,19 @@ class Image:
         logger.debug("%s -> %s [%d]", self.exif_rotation, rotation, index)
         self.exif_rotation = rotation
         self.metadata.set_orientation(self.exif_rotation)
-        self.metadata.save_file()
+
+        try:
+            self.metadata.save_file()
+        except GLib.GError as e:
+            # maybe the file is read only
+            # no u+w support, so read the current mode, add write, then apply
+            mode = os.stat(self.image.path).st.mode
+            mode |= stat.S_IWUSR
+            os.chmod(self.image.path, mode)
+
+            # and try again
+            self.metadata.save_file()
+
         self.exif_rot_to_rot()
 
 
