@@ -47,7 +47,7 @@ class Image:
         ('1', 0),
         ('8', 90),
         ('3', 180),
-        ('6', 270)
+        ('6', 270),
     ])
 
     # this *is* counter intuitive, but believe me, it's like that
@@ -60,7 +60,6 @@ class Image:
         self.pixmap = None
         self.metadata = None
         self.size = None
-        self.rotation = None
         self.zoom = None
         self.position = None
         self.action = None
@@ -97,16 +96,28 @@ class Image:
             self.zoom
 
 
-    def rotate(self, where):
-        rotations = list(self.rotation_to_degrees.keys())
 
+    def rotation(self):
         # some Android camera apps seem to set this value, I assume it's none
         if self.exif_rotation == 0:
-            self.exif_rotation = 1
+            rotation = 1
+        else:
+            rotation = self.exif_rotation
 
-        index = rotations.index(self.exif_rotation)
+        return rotation
+
+
+    def rotation_in_degrees(self):
+        return self.rotation_to_degrees[self.rotation()]
+
+
+    def rotate(self, where):
+        rotations = list(self.rotation_to_degrees.keys())
+        rotation = self.rotation()
+
+        index = rotations.index(rotation)
         index += where
-        index %= 4
+        index %= len(rotations)
 
         rotation = rotations[index]
         logger.debug("%s -> %s [%d]", self.exif_rotation, rotation, index)
@@ -129,8 +140,8 @@ class Image:
 
 
     def exif_rot_to_rot(self):
-        self.rotation = self.rotation_to_degrees[self.exif_rotation]
-        if self.rotation in (90, 270):
+        rotation = self.rotation_in_degrees()
+        if rotation in (90, 270):
             self.size = QSize(self.size.height(), self.size.width())
 
 
