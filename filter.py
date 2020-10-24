@@ -63,7 +63,7 @@ class Image:
         self.zoom = None
         self.position = None
         self.action = None
-        self.deleted = False
+        self.ignored = False
 
 
     def read(self):
@@ -181,18 +181,18 @@ class ImageList:
         logger.debug(len(self.images))
         image = self.images[self.index]
 
-        while moved < how_much or image.deleted:
-            logger.debug( (self.index, image.path, image.deleted, moved, how_much) )
+        while moved < how_much or image.ignored:
+            logger.debug( (self.index, image.path, image.ignored, moved, how_much) )
             self.index += direction
             self.index %= len(self.images)
 
             # skip deleted images
-            if not image.deleted:
+            if not image.ignored:
                 moved += 1
 
             image = self.images[self.index]
 
-        logger.debug( (self.index, image.path, image.deleted, moved, how_much) )
+        logger.debug( (self.index, image.path, image.ignored, moved, how_much) )
         self.current_image = image
 
 
@@ -209,7 +209,8 @@ class ImageList:
             if self.images[index] != item:
                 raise ValueError
 
-        self.images[index].deleted = True
+            item.ignored = True
+
         logger.debug( (index, self.images[index].path) )
         self.move_index()
 
@@ -758,6 +759,9 @@ class Filter(QWidget):
                 self.new_dst()
 
             for index, img in enumerate(self.images):  # already sorted by fname
+                if img.ignored:
+                    continue
+
                 src = img.path
                 dst = os.path.join(self.dst, os.path.basename(src))
                 action = img.action
@@ -818,12 +822,15 @@ class Filter(QWidget):
                         # Delete -> /dev/null
                         os.unlink(src)
                         logger.info("%s deleted", src)
-                        # mark as non existing, move_index() will skip these
-                        # TODO:
-                        self.images.remove(img)
 
                         done_count += 1
                         self.pbar.setValue(done_count)
+
+                    if action in ('K', 'T', 'D', 'C', 'S'):
+                        # don't show the image anymore
+                        logger.debug("%s ignored", img)
+                        img.ignored = True
+
                 except FileNotFoundError as e:
                     logger.info(e)
 
@@ -856,8 +863,9 @@ class Filter(QWidget):
                 if img.action == 'D':
                     # Delete -> /dev/null
                     os.unlink(src)
-                    logger.info("%s deleted", src)
                     self.images.remove(img)
+                    img.ignored = True
+                    logger.info("%s deleted", src)
 
                     # we don't really remove images, just mark them as so
                     # so remove the action
@@ -907,6 +915,7 @@ class Filter(QWidget):
             logger.info("%s -> %s", src, dst)
             self.resize(src, dst)
 
+            self.image.ignored = True
             self.next_image()
 
 
