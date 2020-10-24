@@ -419,10 +419,10 @@ class Filter(QWidget):
     @catch
     def rotate_view(self):
         # we have to 'undo' the rotations, so the numbers are negative
-        rotate = -self.image.rotation
+        rotate = -self.image.rotation_in_degrees()
 
         # undo the last rotation and apply the new one
-        self.view.rotate(-self.rotation+rotate)
+        self.view.rotate(-self.rotation + rotate)
         self.rotation = rotate
         logger.debug( (rotate, self.rotation) )
 
