@@ -476,6 +476,10 @@ class Filter(QWidget):
 
             self.image = self.images.current_image
             finished = self.image.read()
+
+            if not finished:
+                self.image.ignored = True
+
             logger.info((self.image.path, finished))
 
 
