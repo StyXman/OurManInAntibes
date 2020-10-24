@@ -701,7 +701,7 @@ class Filter(QWidget):
 
 
     @catch
-    def compare(self):
+    def compare(self, *args):
         logger.info('comparing')
         self.comparing = True
         self.images = self.compare_set
