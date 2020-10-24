@@ -69,7 +69,11 @@ class Image:
     def read(self):
         if self.pixmap is None:
             self.pixmap = QPixmap(self.path)
-            self.metadata = GExiv2.Metadata(self.path)
+            try:
+                self.metadata = GExiv2.Metadata(self.path)
+            except GLib.Error as e:
+                logger.info("Error loading %s's metadata: %s", self.path, e)
+                return False
 
             # the view will need three parameters:
             # rotation
@@ -93,8 +97,7 @@ class Image:
 
             self.exif_rot_to_rot()
 
-            self.zoom
-
+            return True
 
 
     def rotation(self):
@@ -454,11 +457,23 @@ class Filter(QWidget):
 
     @catch
     def move_index(self, to=None, how_much=0):
-        if self.image is not None:
-            self.save_position()
+        # images might fail to load (for instance, the file was removed
+        # while we were running, and we don't have inotify support yet)
+        # so also iterate until we can find one that loads
+        print(f"{to}:{how_much}")
+        finished = to is None and how_much == 0
 
-        if self.image is not None:
-            self.image.release()
+        while not finished:
+            if self.image is not None:
+                self.save_position()
+                self.image.release()
+
+            self.images.move_index(to, how_much)
+
+            self.image = self.images.current_image
+            finished = self.image.read()
+            logger.info((self.image.path, finished))
+
 
         if not self.random:
             self.images.move_index(to, how_much)
@@ -480,11 +495,9 @@ class Filter(QWidget):
 
     @catch
     def show_image(self):
-        logger.info(self.image.path)
-        self.image.read()
-
         self.rotate_view()
         self.pixmap_view.setPixmap(self.image.pixmap)
+
         if self.zoom_level != 1.0:
             self.zoom_to_fit()
 
