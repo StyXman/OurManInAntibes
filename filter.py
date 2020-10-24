@@ -471,6 +471,7 @@ class Filter(QWidget):
             if not self.random:
                 index = self.images.move_index(to, how_much)
             else:
+                to = random(0, len(self.images) - 1)
                 index = self.images.move_index(to)
 
             self.image = self.images.current_image
