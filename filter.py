@@ -468,19 +468,17 @@ class Filter(QWidget):
                 self.save_position()
                 self.image.release()
 
-            self.images.move_index(to, how_much)
+            if not self.random:
+                index = self.images.move_index(to, how_much)
+            else:
+                index = self.images.move_index(to)
 
             self.image = self.images.current_image
             finished = self.image.read()
             logger.info((self.image.path, finished))
 
 
-        if not self.random:
-            self.images.move_index(to, how_much)
-        else:
-            self.images.move_index(to=random(0, len(self.images)))
 
-        self.image = self.images.current_image
         self.show_image()
 
 
