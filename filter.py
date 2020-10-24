@@ -490,7 +490,7 @@ class Filter(QWidget):
     @catch
     def view_position(self):
         view_size = self.view.size()
-        center = QPoint(view_size.width()/2, view_size.height()/2)
+        center = QPoint(view_size.width() // 2, view_size.height() // 2)
         position = self.view.mapToScene(center)
 
         return position
