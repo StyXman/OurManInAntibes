@@ -18,7 +18,7 @@ from random import randint as random
 from PyQt5.QtWidgets import QApplication, QMainWindow, QGraphicsView, QGraphicsScene
 from PyQt5.QtWidgets import QGraphicsPixmapItem, QAction
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy
-from PyQt5.QtWidgets import QFrame, QWidget, QFileDialog, QSplitter
+from PyQt5.QtWidgets import QFrame, QWidget, QFileDialog, QSplitter, QProgressBar
 from PyQt5.QtGui import QPixmap, QKeySequence, QBrush, QColor
 from PyQt5.QtCore import QTimer, QSize, Qt, QRectF, QMargins, QPoint
 
@@ -254,10 +254,13 @@ class Filter(QWidget):
 
         self.all_images = ImageList()
         self.compare_set = ImageList()
+        self.tagged_count = 0
         # start with all images
         self.images = self.all_images
         self.comparing = False
         self.random = False
+
+        self.buildUI(parent)
 
         self.src = config['Directories']['mid']
         self.dst = os.getcwd()
@@ -269,8 +272,6 @@ class Filter(QWidget):
         self.image_actions = defaultdict(lambda: None)
         self.image_positions = {}
         self.original_position = None
-
-        self.buildUI(parent)
 
         self.dir_dialog = QFileDialog(self)
         self.dir_dialog.setFileMode(QFileDialog.Directory)
@@ -333,10 +334,18 @@ class Filter(QWidget):
         spacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.tag_view = QLabel(self)
 
+        # progress bar, hidden initially
+        self.pbar = QProgressBar(self)
+        self.pbar.setFormat("%v / %m")
+        # TODO:
+        # sp = QSizePolicy(
+        # self.pbar.hide()
+
         status_bar = QHBoxLayout()
         status_bar.addWidget(self.fname)
         status_bar.addItem(spacer)
         status_bar.addWidget(self.tag_view)
+        status_bar.addWidget(self.pbar)
 
         w = QWidget(self.splitter)
 
@@ -387,11 +396,23 @@ class Filter(QWidget):
     @catch
     def scan(self, src):
         logger.debug('scanning %r', src)
+
+        total = 0
+        count = 0
+
         for r, dirs, files in os.walk(os.path.abspath(src)):
+            total += len(files)
+            self.pbar.setRange(1, total)
+
             for name in files:
+                count += 1
+                self.pbar.setValue(count)
+
                 if name[-4:].lower() in ('.jpg', '.png'):
                     # logger.info('found %s',  name)
                     self.images.add(Image(os.path.join(r, name)))
+
+        self.pbar.reset()
 
 
     @catch
@@ -618,6 +639,7 @@ class Filter(QWidget):
     @catch
     def keep(self, *args):
         self.image.action = 'K'
+        self.tagged_count += 1
         self.next_image()
 
 
@@ -625,6 +647,7 @@ class Filter(QWidget):
     @catch
     def tag(self, *args):
         self.image.action = 'T'
+        self.tagged_count += 1
         self.next_image()
 
 
@@ -632,6 +655,7 @@ class Filter(QWidget):
     @catch
     def stitch(self, *args):
         self.image.action = 'S'
+        self.tagged_count += 1
         self.next_image()
 
 
@@ -663,6 +687,7 @@ class Filter(QWidget):
     @catch
     def crop(self, *args):
         self.image.action = 'C'
+        self.tagged_count += 1
         self.next_image()
 
 
@@ -670,6 +695,7 @@ class Filter(QWidget):
     @catch
     def delete(self, *args):
         self.image.action = 'D'
+        self.tagged_count += 1
         logger.info("[%d] %s marked for deletion", self.images.index, self.image.path)
 
         if self.comparing:
@@ -688,6 +714,7 @@ class Filter(QWidget):
             # don't move, most probably I'm reconsidering what to do
             # but change the label
             self.tag_view.setText('')
+            self.tagged_count -= 1
         except KeyError:
             # tried to untag a non-tagged image
             pass
@@ -714,6 +741,9 @@ class Filter(QWidget):
     @catch
     def apply(self, *args):
         if not self.comparing:
+            done_count = 0
+            self.pbar.setRange(1, self.tagged_count)
+
             hugin = False
 
             if len([ img.action for img in self.images if img.action in ('K', 'T') ]) > 0:
@@ -737,9 +767,15 @@ class Filter(QWidget):
                         logger.info("%s -> %s", src, dst)
                         shutil.move(src, dst)
 
+                        done_count += 1
+                        self.pbar.setValue(done_count)
+
                     elif action == 'T':
                         # Take -> /gallery/foo, resized
                         self.resize(src, dst)
+
+                        done_count += 1
+                        self.pbar.setValue(done_count)
 
                     elif action == 'S':
                         # Stitch -> 02-new/stitch
@@ -767,6 +803,8 @@ class Filter(QWidget):
                         # logger.info("%s -> %s", src, dst)
                         # shutil.move(src, dst)
 
+                        done_count += 1
+                        self.pbar.setValue(done_count)
 
                     elif action == 'D':
                         # Delete -> /dev/null
@@ -775,11 +813,16 @@ class Filter(QWidget):
                         # mark as non existing, move_index() will skip these
                         # TODO:
                         self.images.remove(img)
+
+                        done_count += 1
+                        self.pbar.setValue(done_count)
                 except FileNotFoundError as e:
                     logger.info(e)
 
             if hugin:
                 os.system('hugin')
+
+            self.tagged_count = 0
 
             self.reset()
         else:
@@ -823,6 +866,8 @@ class Filter(QWidget):
         self.image_actions.clear()
         self.compare_set.clear()
         self.comparing = False
+
+        self.pbar.reset()
 
 
     @catch
