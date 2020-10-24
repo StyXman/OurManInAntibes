@@ -527,7 +527,15 @@ class Filter(QWidget):
             self.date.setText(date.isoformat())
 
         self.fnumber.setText('f/' + str(meta.get_fnumber()))
+        # get_focal_length() returns a float, so int() first, then str()
         self.focal_length.setText(str(int(meta.get_focal_length())) + 'mm')
+
+        # OTOH, Exif.Photo.FocalLengthIn35mmFilm returns a str() already
+        try:
+            self.focal_length_35mm_equivalent.setText(meta['Exif.Photo.FocalLengthIn35mmFilm'] + 'mm')
+        except KeyError:
+            self.focal_length_35mm_equivalent.setText('None')
+
         self.iso_speed.setText(str(meta.get_iso_speed()))
 
         f = meta.get_exposure_time()
