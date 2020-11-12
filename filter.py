@@ -103,7 +103,7 @@ class Image:
     def rotation(self):
         # some Android camera apps seem to set this value, I assume it's none
         if self.exif_rotation == '0':
-            rotation = 1
+            rotation = '1'
         else:
             rotation = self.exif_rotation
 
