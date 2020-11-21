@@ -38,11 +38,12 @@ logger = logging.getLogger("ananke")
 # TODO:
 # config file (done partially)
 # properly handle reload/other dirs (compare)
+# review mode
 
 class Image:
     # see http://www.daveperrett.com/images/articles/2012-07-28-exif-orientation-handling-is-a-ghetto/EXIF_Orientations.jpg
     # WTF designed that sequence...
-    # rotations as read from the metadata are strings
+    # rotations as read from the metadata are strings, so these keys are too
     rotation_to_degrees = OrderedDict([
         ('1', 0),
         ('8', 90),
@@ -251,6 +252,24 @@ class Filter(QWidget):
     label_map = { 'K': 'Keep', 'T': 'Take', 'S': 'Stitch', 'M': 'Compare',
                   'C': 'Crop', 'D': 'Delete', None: '' }
 
+    # see https://github.com/exiftool/exiftool/blob/master/lib/Image/ExifTool/Nikon.pm#L8128
+    multiple_exposure_map = {
+        '0': 'Off',
+        # '1': 'Multiple Exposure',
+        '1': 'Manual',
+        '2': 'Image Overlay',
+        '3': 'HDR',
+    }
+
+    active_dlightning_map = {
+            '0': 'Off',
+        '65535': 'Auto',
+            '7': 'Extra High',
+            '5': 'High',
+            '3': 'Normal',
+            '1': 'Low',
+    }
+
     def __init__(self, parent, config, new_files):
         QWidget.__init__(self, parent)
         self.zoom_level = 1.0
@@ -299,8 +318,10 @@ class Filter(QWidget):
         self.label_layout = QVBoxLayout(self.widget)
 
         for name in [ 'date', 'size', 'focal_length', 'focal_length_35mm_equivalent',
-                      'exposure_time', 'fnumber', 'iso_speed', 'focus_distance',
-                      'exposure_compensation', 'active_dlightning', ]:
+                      'exposure_time', 'fnumber', 'iso_speed', 'focus', 'focus_distance',
+                      'exposure_compensation', 'multiple_exposure', 'multiple_exposure_shots',
+                      'active_dlightning',
+                      'white_balance', 'noise_reduction', ]:
             key_label = QLabel(name.replace('_', ' ').title(), self.widget)
             self.label_layout.addWidget(key_label)
 
@@ -534,48 +555,36 @@ class Filter(QWidget):
 
         meta = self.image.metadata
 
-        size = "%d x %d" % (meta.get_metadata_pixel_width(),
-                            meta.get_metadata_pixel_height())
-        self.size.setText(size)
-
         date = read_image_date(self.image.path, meta)
         if date is None:
-            self.date.setText('unknown')
+            self.date.setText('Unknown')
         else:
             self.date.setText(date.isoformat())
 
-        self.fnumber.setText('f/' + str(meta.get_fnumber()))
+        size = f"{meta.get_metadata_pixel_width()}px x {meta.get_metadata_pixel_height()}px"
+        self.size.setText(size)
+
         # get_focal_length() returns a float, so int() first, then str()
-        self.focal_length.setText(str(int(meta.get_focal_length())) + 'mm')
+        self.focal_length.setText(f"{int(meta.get_focal_length())}mm")
 
         # OTOH, Exif.Photo.FocalLengthIn35mmFilm returns a str() already
-        try:
-            self.focal_length_35mm_equivalent.setText(meta['Exif.Photo.FocalLengthIn35mmFilm'] + 'mm')
-        except KeyError:
-            self.focal_length_35mm_equivalent.setText('None')
-
-        self.iso_speed.setText(str(meta.get_iso_speed()))
+        value = meta.get('Exif.Photo.FocalLengthIn35mmFilm', 'Unknown')
+        self.focal_length_35mm_equivalent.setText(f"{value}mm")
 
         f = meta.get_exposure_time()
         if f is None:
             s = 'unknown'
         elif f.denominator == 1:
-            s = '%ds' % f.numerator
+            s = f"{f.numerator}s"
         else:
-            s = '%d/%ds' % (f.numerator, f.denominator)
+            s = f"{f.numerator}/{f.denominator}s"
         self.exposure_time.setText(s)
 
-        try:
-            self.active_dlightning.setText(meta['Exif.Nikon3.ActiveDLighting'])
-        except KeyError:
-            self.active_dlightning.setText('None')
+        self.fnumber.setText(f"f/{meta.get_fnumber()}")
 
-        try:
-            stops = Fraction(meta['Exif.Photo.ExposureBiasValue'])
-        except (KeyError, ZeroDivisionError):
-            self.exposure_compensation.setText('None')
-        else:
-            self.exposure_compensation.setText(str(stops))
+        self.iso_speed.setText(f"ISO {meta.get_iso_speed()}")
+
+        self.focus.setText(meta.get('Exif.Nikon3.Focus', 'N/A').strip())
 
         try:
             distance = int(meta['Exif.NikonLd3.FocusDistance'])
@@ -584,11 +593,42 @@ class Filter(QWidget):
         else:
             # see https://github.com/exiftool/exiftool/blob/master/lib/Image/ExifTool/Nikon.pm#L4235
             value_conv = 0.01 * 10 ** (distance / 40)
-            self.focus_distance.setText("%.1fm" % value_conv)
+            self.focus_distance.setText(f"{value_conv:.1f}m")
+
+        try:
+            stops = Fraction(meta['Exif.Photo.ExposureBiasValue'])
+        except (KeyError, ZeroDivisionError):
+            self.exposure_compensation.setText('None')
+        else:
+            self.exposure_compensation.setText(f"{stops} stops")
+
+        value = meta.get('Exif.Nikon3.ActiveDLighting', '0')
+        self.active_dlightning.setText(self.active_dlightning_map[value])
+
+        # multi exposure
+        # https://github.com/exiftool/exiftool/blob/master/lib/Image/ExifTool/Nikon.pm#L8118
+        # incoming/01-tmp/2020-11-06T22.58.14.jpg  Exif.NikonMe.MultiExposureMode               Long        1  (3)
+        # incoming/01-tmp/2020-11-06T22.58.14.jpg  Exif.NikonMe.MultiExposureShots              Long        1  2
+        value = meta.get('Exif.NikonMe.MultiExposureMode', '0')
+        self.multiple_exposure.setText(self.multiple_exposure_map[value])
+
+        value = meta.get('Exif.NikonMe.MultiExposureShots', 'N/A')
+        self.multiple_exposure_shots.setText(value)
+
+        # hdr
+        # https://github.com/exiftool/exiftool/blob/master/lib/Image/ExifTool/Nikon.pm#L8144
+        # value = meta.get('', 'N/A')
+        # self.hdr.setText(value)
+
+        # exposure time
+        # https://github.com/exiftool/exiftool/blob/master/lib/Image/ExifTool/Nikon.pm#L8266
+        # https://github.com/exiftool/exiftool/blob/master/lib/Image/ExifTool/Nikon.pm#L8371
 
         # Exif.Nikon3.WhiteBalance
+        self.white_balance.setText(meta.get('Exif.Nikon3.WhiteBalance', 'Unknown').strip())
         # Exif.Nikon3.WhiteBalanceBias
-        # Exif.Nikon3.Focus
+
+        self.noise_reduction.setText(meta.get('Exif.Nikon3.NoiseReduction', 'Unknown'))
 
 
     @catch
