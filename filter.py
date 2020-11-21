@@ -384,14 +384,15 @@ class Filter(QWidget):
                           (Qt.Key_S, self.stitch),
                           (Qt.Key_M, self.select_for_compare),
                           (Qt.Key_C, self.crop),
-                          (Qt.Key_D, self.delete),
+                          (Qt.CTRL + Qt.Key_D, self.delete),
                           (Qt.Key_U, self.untag),
-                          (Qt.Key_X, self.expunge),
+                          (Qt.CTRL + Qt.Key_X, self.expunge),
                           (Qt.Key_Return, self.apply),
 
-                          (Qt.CTRL+Qt.Key_M, self.compare),
-                          (Qt.CTRL+Qt.Key_O, self.new_src),
-                          (Qt.CTRL+Qt.Key_S, self.save),):
+                          (Qt.CTRL + Qt.Key_M, self.compare),
+                          (Qt.CTRL + Qt.Key_O, self.new_src),
+                          (Qt.CTRL + Qt.Key_S, self.save),):
+
             action = QAction(parent)
             action.setShortcut(QKeySequence(key))
             action.triggered.connect(slot)
