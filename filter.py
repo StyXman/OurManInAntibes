@@ -320,8 +320,7 @@ class Filter(QWidget):
         for name in [ 'date', 'size', 'focal_length', 'focal_length_35mm_equivalent',
                       'exposure_time', 'fnumber', 'iso_speed', 'focus', 'focus_distance',
                       'exposure_compensation', 'multiple_exposure', 'multiple_exposure_shots',
-                      'active_dlightning',
-                      'white_balance', 'noise_reduction', ]:
+                      'active_dlightning', 'white_balance', 'picture_control', 'noise_reduction', ]:
             key_label = QLabel(name.replace('_', ' ').title(), self.widget)
             self.label_layout.addWidget(key_label)
 
@@ -624,11 +623,15 @@ class Filter(QWidget):
         # https://github.com/exiftool/exiftool/blob/master/lib/Image/ExifTool/Nikon.pm#L8266
         # https://github.com/exiftool/exiftool/blob/master/lib/Image/ExifTool/Nikon.pm#L8371
 
-        # Exif.Nikon3.WhiteBalance
-        self.white_balance.setText(meta.get('Exif.Nikon3.WhiteBalance', 'Unknown').strip())
+        value = meta.get('Exif.Nikon3.WhiteBalance', 'Unknown').strip().capitalize()
+        self.white_balance.setText(value)
         # Exif.Nikon3.WhiteBalanceBias
 
-        self.noise_reduction.setText(meta.get('Exif.Nikon3.NoiseReduction', 'Unknown'))
+        value = meta.get('Exif.NikonPc.Name', 'Unknown').strip().capitalize()
+        self.picture_control.setText(value)
+
+        value = meta.get('Exif.Nikon3.NoiseReduction', 'Unknown').strip().capitalize()
+        self.noise_reduction.setText(value)
 
 
     @catch
