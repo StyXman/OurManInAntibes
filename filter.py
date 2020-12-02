@@ -653,10 +653,10 @@ class Filter(QWidget):
         self.white_balance.setText(value)
         # Exif.Nikon3.WhiteBalanceBias
 
-        value = meta.get('Exif.NikonPc.Name', 'Unknown').strip().capitalize()
+        value = meta.get('Exif.NikonPc.Name', 'Unknown').strip().title()
         self.picture_control.setText(value)
 
-        value = meta.get('Exif.Nikon3.NoiseReduction', 'Unknown').strip().capitalize()
+        value = meta.get('Exif.Nikon3.NoiseReduction', 'Unknown').strip().title()
         self.noise_reduction.setText(value)
 
         value = meta.get('Exif.Image.Make', 'Unknown').strip().title()
