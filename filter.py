@@ -320,7 +320,7 @@ class Filter(QWidget):
         self.label_layout.setSpacing(0)
 
         for name in [ 'date', 'size', 'focal_length', 'focal_length_35mm_equivalent',
-                      'exposure_time', 'fnumber', 'iso_speed', 'focus', 'focus_distance',
+                      'exposure_time', 'aperture', 'iso_speed', 'focus', 'focus_distance',
                       'exposure_compensation', 'multiple_exposure', 'multiple_exposure_shots',
                       'active_dlightning', 'white_balance', 'picture_control',
                       'noise_reduction', 'brand', 'model', 'rating']:
@@ -605,7 +605,7 @@ class Filter(QWidget):
             s = f"{f.numerator}/{f.denominator}s"
         self.exposure_time.setText(s)
 
-        self.fnumber.setText(f"f/{meta.get_fnumber()}")
+        self.aperture.setText(f"f/{meta.get_fnumber()}")
 
         self.iso_speed.setText(f"ISO {meta.get_iso_speed()}")
 
