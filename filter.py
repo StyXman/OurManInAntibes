@@ -28,6 +28,7 @@ from gi.repository import GExiv2, GLib
 
 import workflow
 from rename_pictures import rename_file, read_image_date
+import digikam
 
 import logging
 log_format = "%(asctime)s %(name)16s:%(lineno)-4d (%(funcName)-21s) %(levelname)-8s %(message)s"
@@ -316,11 +317,13 @@ class Filter(QWidget):
 
         self.widget = QWidget(self.splitter)
         self.label_layout = QVBoxLayout(self.widget)
+        self.label_layout.setSpacing(0)
 
         for name in [ 'date', 'size', 'focal_length', 'focal_length_35mm_equivalent',
                       'exposure_time', 'fnumber', 'iso_speed', 'focus', 'focus_distance',
                       'exposure_compensation', 'multiple_exposure', 'multiple_exposure_shots',
-                      'active_dlightning', 'white_balance', 'picture_control', 'noise_reduction', ]:
+                      'active_dlightning', 'white_balance', 'picture_control',
+                      'noise_reduction', 'rating']:
             key_label = QLabel(name.replace('_', ' ').title(), self.widget)
             self.label_layout.addWidget(key_label)
 
@@ -385,38 +388,61 @@ class Filter(QWidget):
         h.addWidget(self.splitter)
 
         # now... ACTION!(s)
-        for key, slot in ((Qt.Key_Home,      self.first_image),
-                          (Qt.CTRL + Qt.Key_PageUp,   self.prev_hundred),
-                          (Qt.Key_PageUp,    self.prev_ten),
-                          (Qt.Key_Backspace, self.prev_image),
-                          (Qt.Key_Space,     self.next_image),
-                          (Qt.Key_PageDown,  self.next_ten),
-                          (Qt.CTRL + Qt.Key_PageDown, self.next_hundred),
-                          (Qt.Key_End,       self.last_image),
-                          (Qt.CTRL + Qt.Key_R, self.toggle_random),
+        for key, slot in (
+                (Qt.Key_Home,      self.first_image),
+                (Qt.CTRL + Qt.Key_PageUp,   self.prev_hundred),
+                (Qt.Key_PageUp,    self.prev_ten),
+                (Qt.Key_Backspace, self.prev_image),
+                (Qt.Key_Space,     self.next_image),
+                (Qt.Key_PageDown,  self.next_ten),
+                (Qt.CTRL + Qt.Key_PageDown, self.next_hundred),
+                (Qt.Key_End,       self.last_image),
+                (Qt.CTRL + Qt.Key_R, self.toggle_random),
 
-                          (Qt.Key_Greater, self.rotate_right),
-                          (Qt.Key_Less,    self.rotate_left),
-                          (Qt.Key_F,       self.toggle_fullsize),
+                (Qt.Key_Greater, self.rotate_right),
+                (Qt.Key_Less,    self.rotate_left),
+                (Qt.Key_F,       self.toggle_fullsize),
 
-                          (Qt.Key_K, self.keep),
-                          (Qt.Key_T, self.tag),
-                          (Qt.Key_S, self.stitch),
-                          (Qt.Key_M, self.select_for_compare),
-                          (Qt.Key_C, self.crop),
-                          (Qt.CTRL + Qt.Key_D, self.delete),
-                          (Qt.Key_U, self.untag),
-                          (Qt.CTRL + Qt.Key_X, self.expunge),
-                          (Qt.Key_Return, self.apply),
+                (Qt.Key_K, self.keep),
+                (Qt.Key_T, self.tag),
+                (Qt.Key_S, self.stitch),
+                (Qt.Key_M, self.select_for_compare),
+                (Qt.Key_C, self.crop),
+                (Qt.CTRL + Qt.Key_D, self.delete),
+                (Qt.Key_U, self.untag),
+                (Qt.CTRL + Qt.Key_X, self.expunge),
+                (Qt.Key_Return, self.apply),
 
-                          (Qt.CTRL + Qt.Key_M, self.compare),
-                          (Qt.CTRL + Qt.Key_O, self.new_src),
-                          (Qt.CTRL + Qt.Key_S, self.save),):
+                (Qt.CTRL + Qt.Key_M, self.compare),
+                (Qt.CTRL + Qt.Key_O, self.new_src),
+                (Qt.CTRL + Qt.Key_S, self.save),
+
+                (Qt.Key_0, lambda *ignore: self.set_rating(-1)),
+                (Qt.Key_1, lambda *ignore: self.set_rating( 1)),
+                (Qt.Key_2, lambda *ignore: self.set_rating( 2)),
+                (Qt.Key_3, lambda *ignore: self.set_rating( 3)),
+                (Qt.Key_4, lambda *ignore: self.set_rating( 4)),
+                (Qt.Key_5, lambda *ignore: self.set_rating( 5)),
+            ):
 
             action = QAction(parent)
             action.setShortcut(QKeySequence(key))
             action.triggered.connect(slot)
             self.view.addAction(action)
+
+
+    @catch
+    def set_rating(self, rating):
+        name = os.path.basename(self.image.path)
+        image = digikam.image(name)
+
+        if image is not None:
+            logger.debug("%s: %d", name, image.info[0].rating)
+            image.info[0].rating = rating
+            digikam.session.commit()
+
+            self.update_rating(name)
+
 
     @catch
     def scan(self, src):
@@ -623,7 +649,7 @@ class Filter(QWidget):
         # https://github.com/exiftool/exiftool/blob/master/lib/Image/ExifTool/Nikon.pm#L8266
         # https://github.com/exiftool/exiftool/blob/master/lib/Image/ExifTool/Nikon.pm#L8371
 
-        value = meta.get('Exif.Nikon3.WhiteBalance', 'Unknown').strip().capitalize()
+        value = self.get_value(meta, [ 'Exif.Nikon3.WhiteBalance', 'Exif.CanonPr.WhiteBalance' ],'Unknown')
         self.white_balance.setText(value)
         # Exif.Nikon3.WhiteBalanceBias
 
@@ -632,6 +658,20 @@ class Filter(QWidget):
 
         value = meta.get('Exif.Nikon3.NoiseReduction', 'Unknown').strip().capitalize()
         self.noise_reduction.setText(value)
+
+        self.update_rating()
+
+
+    @catch
+    def update_rating(self, name=None):
+        if name is None:
+            name = os.path.basename(self.image.path)
+
+        image = digikam.image(name)
+        if image is not None:
+            self.rating.setText(str(image.info[0].rating))
+        else:
+            self.rating.setText('N/A')
 
 
     @catch
