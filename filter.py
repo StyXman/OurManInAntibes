@@ -323,7 +323,7 @@ class Filter(QWidget):
                       'exposure_time', 'fnumber', 'iso_speed', 'focus', 'focus_distance',
                       'exposure_compensation', 'multiple_exposure', 'multiple_exposure_shots',
                       'active_dlightning', 'white_balance', 'picture_control',
-                      'noise_reduction', 'rating']:
+                      'noise_reduction', 'brand', 'model', 'rating']:
             key_label = QLabel(name.replace('_', ' ').title(), self.widget)
             self.label_layout.addWidget(key_label)
 
@@ -658,6 +658,12 @@ class Filter(QWidget):
 
         value = meta.get('Exif.Nikon3.NoiseReduction', 'Unknown').strip().capitalize()
         self.noise_reduction.setText(value)
+
+        value = meta.get('Exif.Image.Make', 'Unknown').strip().title()
+        self.brand.setText(value)
+
+        value = meta.get('Exif.Image.Model', 'Unknown').strip().title()
+        self.model.setText(value)
 
         self.update_rating()
 
