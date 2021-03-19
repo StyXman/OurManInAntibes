@@ -21,6 +21,7 @@ from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QLabel, QSpacerItem, QSize
 from PyQt5.QtWidgets import QFrame, QWidget, QFileDialog, QSplitter, QProgressBar
 from PyQt5.QtGui import QPixmap, QKeySequence, QBrush, QColor
 from PyQt5.QtCore import QTimer, QSize, Qt, QRectF, QMargins, QPoint
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 import gi
 gi.require_version('GExiv2', '0.10')
@@ -249,6 +250,48 @@ def catch(method):
     return wrapped
 
 
+class Importer(QObject):
+    updated = pyqtSignal(int)
+    finished = pyqtSignal()
+    progress = pyqtSignal(int)
+
+    def __init__(self, images, random_images):
+        super().__init__()
+        self.images = images
+        self.random_images = random_images
+        self.src = None
+
+    @catch
+    def scan(self):
+        if self.src is None:
+            logger.debug("nohting to scan, bailing out")
+            return
+
+        logger.debug('scanning %r', self.src)
+
+        total = 0
+        count = 0
+
+        for r, dirs, files in os.walk(os.path.abspath(self.src)):
+            total += len(files)
+            self.updated.emit(total)
+
+            for name in files:
+                count += 1
+                self.progress.emit(count)
+
+                if name[-4:].lower() in ('.jpg', '.png'):
+                    # logger.info('found %s',  name)
+                    image = Image(os.path.join(r, name))
+                    self.images.add(image)
+                    self.random_images.add(image)
+
+        shuffle(self.random_images)
+
+        logger.debug('finished scanning %r', self.src)
+        self.finished.emit()
+
+
 class Filter(QWidget):
     label_map = { 'K': 'Keep', 'T': 'Take', 'S': 'Stitch', 'M': 'Compare',
                   'C': 'Crop', 'D': 'Delete', None: '' }
@@ -278,18 +321,24 @@ class Filter(QWidget):
 
         self.all_images = ImageList()
         self.compare_set = ImageList()
+        self.random_images = ImageList()
         self.tagged_count = 0
         # start with all images
         self.images = self.all_images
         self.comparing = False
         self.random = False
 
-        self.buildUI(parent)
-
         self.src = config['Directories']['mid']
         self.dst = os.getcwd()
-        self.scan(self.src)
         self.new_files = new_files
+
+        logger.debug("creating importer")
+        self.importer = Importer(self.images, self.random_images)
+        # this looks weird, i know, but see
+        # https://realpython.com/python-pyqt-qthread/#using-qthread-to-prevent-freezing-guis
+        self.importer_thread = QThread()
+        self.importer.moveToThread(self.importer_thread)
+        self.importer_thread.started.connect(self.scan)
 
         self.image = None
 
@@ -297,11 +346,18 @@ class Filter(QWidget):
         self.image_positions = {}
         self.original_position = None
 
+        self.buildUI(parent)
+
         self.dir_dialog = QFileDialog(self)
         self.dir_dialog.setFileMode(QFileDialog.Directory)
         self.dir_dialog.modal = False
         self.dir_dialog.setOption(QFileDialog.ShowDirsOnly)
         self.dir_dialog.setAcceptMode(QFileDialog.AcceptSave)
+
+        self.index = 0
+
+        logger.debug("scan!")
+        self.scan()
 
 
     @catch
@@ -367,6 +423,13 @@ class Filter(QWidget):
         # TODO:
         # sp = QSizePolicy(
         # self.pbar.hide()
+
+        logger.debug("connecting importer")
+        # connect importer updates to pbar
+        self.importer.updated.connect(lambda i: self.pbar.setRange(1, i))
+        self.importer.progress.connect(self.pbar.setValue)
+        self.importer.finished.connect(self.pbar.reset)
+        self.importer.finished.connect(self.first_image)
 
         status_bar = QHBoxLayout()
         status_bar.addWidget(self.fname)
@@ -445,26 +508,11 @@ class Filter(QWidget):
 
 
     @catch
-    def scan(self, src):
-        logger.debug('scanning %r', src)
-
-        total = 0
-        count = 0
-
-        for r, dirs, files in os.walk(os.path.abspath(src)):
-            total += len(files)
-            self.pbar.setRange(1, total)
-
-            for name in files:
-                count += 1
-                self.pbar.setValue(count)
-
-                if name[-4:].lower() in ('.jpg', '.png'):
-                    # logger.info('found %s',  name)
-                    self.images.add(Image(os.path.join(r, name)))
-
-        self.pbar.reset()
-
+    def scan(self):
+        # import pdb; pdb.set_trace()
+        self.importer.src = self.src
+        logger.debug("thread start for %s", self.src)
+        self.importer_thread.start()
 
     @catch
     def rotate_view(self):
@@ -985,11 +1033,15 @@ class Filter(QWidget):
         if new_root is not None:
             self.src = new_root
 
-        self.image_actions.clear()
         self.compare_set.clear()
         self.comparing = False
 
         self.pbar.reset()
+
+        if new_root is not None:
+            self.all_images.clear()
+            self.random_images.clear()
+            self.scan()
 
 
     @catch
@@ -1003,8 +1055,7 @@ class Filter(QWidget):
     def new_src(self, *args):
         self.dir_dialog.setDirectory(self.src)
         if self.dir_dialog.exec():
-            self.src = self.dir_dialog.selectedFiles()[0]
-            self.reset()
+            self.reset(new_root=self.dir_dialog.selectedFiles()[0])
 
 
     @catch
@@ -1039,7 +1090,7 @@ if __name__ == '__main__':
     win = QMainWindow()
 
     view = Filter(win, config, new)
-    show_first_image = QTimer.singleShot(200, view.first_image)
+    # show_first_image = QTimer.singleShot(200, view.first_image)
 
     win.setCentralWidget(view)
     win.showFullScreen()
